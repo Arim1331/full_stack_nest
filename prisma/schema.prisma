@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+  KAKAO
+  NAVER
+}
+
+model Member {
+  id Int @id @default(autoincrement())  @map("member_id")
+  memberEmail String @unique @map("member_email")
+  memberName String @map("member_name")
+  memberXp Int @default(0) @map("member_xp")
+  memberAge Int? @map("member_age")
+  memberAddress String? @map("member_address")
+  memberProfile String?@map("member_profile")
+  memberCreateAt DateTime @default(now()) @map("member_create_at")
+  memberUpdatedAt  DateTime  @updatedAt @map("member_updated_at")
+  memberLevel Int @default(1) @map("member_level")
+
+  // id               Int       @id @default(autoincrement()) @map("member_id")
+  // memberEmail      String    @unique @map("member_email")
+  // memberName   String    @unique @map("member_name")
+  // memberXp         Int       @default(0) @map("member_xp")
+  // memberCreatedAt  DateTime  @default(now()) @map("member_created_at")
+  // memberDeletedAt  DateTime? @map("member_deleted_at")
+  // memberProfileImage String? @map("member_profile_image")
+  // memberUpdatedAt  DateTime  @updatedAt @map("member_updated_at")
+  // memberLevel      Int       @default(1) @map("member_level")
+
+  socials          AuthAccount[]
+  userBadge        UserBadge[]
+  post             Post[]
+  comment          Comment[]
+  savedRecipe      SavedRecipe[]
+  postLike         PostLike[]
+  myFridge         MyFridge[]
+
+  @@map("tbl_member")
+}
+
+model AuthAccount {
+
+  id Int @id @default(autoincrement()) @map("auth_account_id")
+  memberProvider AuthProvider @map("member_provider")
+  memberProviderId String? @map("member_provider_id")
+  memberPassword String? @map("member_password")
+  memberId Int @map("member_id")
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  // id              Int           @id @default(autoincrement()) @map("auth_account_id")
+  // memberId        Int           @map("member_id")
+  // memberProvider  AuthProvider  @map("provider_type")
+  // providerUserId  String?       @map("provider_user_id")
+  // authEmail       String?       @map("auth_email")
+  // memberPassword  String?       @map("auth_password")
+  // isPrimary       Int           @default(0) @map("is_primary")
+  // authCreatedAt   DateTime      @default(now()) @map("auth_created_at")
+  // authUpdatedAt   DateTime      @updatedAt @map("auth_updated_at")
+
+  @@unique([memberProvider, memberProviderId])
+  @@map("tbl_auth_account")
+}
+
+model Badge {
+  id                   Int     @id @default(autoincrement()) @map("badge_id")
+  badgeName            String  @map("badge_name")
+  badgeDescription     String  @map("badge_description")
+  badgeImageUrl        String? @map("badge_image_url")
+  badgeRewardXp        Int     @default(0) @map("badge_reward_xp")
+  badgeConditionType   String? @map("badge_condition_type")
+  badgeConditionValue  Int?    @map("badge_condition_value")
+
+  userBadge UserBadge[]
+
+  @@map("tbl_badge")
+}
+
+model UserBadge {
+  id             Int      @id @default(autoincrement()) @map("user_badge_id")
+  memberId       Int      @map("member_id")
+  badgeId        Int      @map("badge_id")
+  achievedAt     DateTime @default(now()) @map("user_badge_achieve_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+  badge  Badge  @relation(fields: [badgeId], references: [id])
+
+  @@unique([memberId, badgeId])
+  @@map("tbl_user_badge")
+}
+
+model Recipe {
+  id            Int      @id @default(autoincrement()) @map("recipe_id")
+  recipeTitle   String   @map("recipe_title")
+  recipeDesc    String?  @map("recipe_desc")
+  recipeImageUrl String? @map("recipe_image_url")
+  cookTimeMin   Int?     @map("recipe_cook_time_min")
+  recipeDifficulty String @map("recipe_difficulty")
+  recipeXp      Int      @default(0) @map("recipe_xp")
+  createdAt     DateTime @default(now()) @map("recipe_created_at")
+  updatedAt     DateTime? @map("recipe_updated_at")
+  deletedAt     DateTime? @map("recipe_deleted_at")
+  recipeCategory String?  @map("recipe_category")
+
+  recipeIngredient RecipeIngredient[]
+  savedRecipe      SavedRecipe[]
+  post             Post[]
+
+  @@map("tbl_recipe")
+}
+
+model RecipeIngredient {
+  id              Int    @id @default(autoincrement()) @map("recipe_ingredient_id")
+  ingredientAmount String? @map("recipe_ingredient_amount")
+  sortOrder       Int    @default(0) @map("recipe_ingredient_sort_order")
+  recipeId        Int    @map("recipe_id")
+  ingredientId    Int    @map("ingredient_id")
+
+  recipe     Recipe     @relation(fields: [recipeId], references: [id])
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([recipeId, ingredientId])
+  @@map("tbl_recipe_ingredient")
+}
+
+model Ingredient {
+  id               Int     @id @default(autoincrement()) @map("ingredient_id")
+  ingredientName   String  @unique @map("ingredient_name")
+  createdAt        DateTime? @map("ingredient_created_at")
+  ingredientCategory String @map("ingredient_category")
+  ingredientImageUrl String? @map("ingredient_image_url")
+
+  recipeIngredient   RecipeIngredient[]
+  myFridge           MyFridge[]
+  postIngredientUsed PostIngredientUsed[]
+
+  @@map("tbl_ingredient")
+}
+
+model MyFridge {
+  id            Int      @id @default(autoincrement()) @map("fridge_id")
+  memberId      Int      @map("member_id")
+  fridgeQuantity String  @map("fridge_quantity")
+  expireDate    Int?     @map("fridge_expire_date")
+  createdAt     DateTime? @map("fridge_created_at")
+  updatedAt     DateTime? @map("fridge_updated_at")
+  deletedAt     DateTime? @map("fridge_deleted_at")
+  ingredientId  Int      @map("ingredient_id")
+
+  member     Member     @relation(fields: [memberId], references: [id])
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([memberId, ingredientId, expireDate])
+  @@map("tbl_my_fridge")
+}
+
+model Post {
+  id         Int      @id @default(autoincrement()) @map("post_id")
+  memberId   Int      @map("member_id")
+  postTitle  String   @map("post_title")
+  postContent String  @map("post_content")
+  createdAt  DateTime @default(now()) @map("post_created_at")
+  updatedAt  DateTime? @map("post_updated_at")
+  postXp     Int      @default(0) @map("post_xp")
+  recipeId   Int      @map("recipe_id")
+  deletedAt  DateTime? @map("post_deleted_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+  recipe Recipe @relation(fields: [recipeId], references: [id])
+
+  postImage          PostImage[]
+  comment            Comment[]
+  postLike           PostLike[]
+  postIngredientUsed PostIngredientUsed[]
+
+  @@map("tbl_post")
+}
+
+model PostImage {
+  id           Int      @id @default(autoincrement()) @map("post_image_id")
+  postId       Int      @map("post_id")
+  imageUrl     String   @map("post_image_url")
+  imageOrder   Int      @default(0) @map("post_image_order")
+  createdAt    DateTime @default(now()) @map("post_image_create_at")
+
+  post Post @relation(fields: [postId], references: [id])
+
+  @@map("tbl_post_image")
+}
+
+model Comment {
+  id         Int      @id @default(autoincrement()) @map("comment_id")
+  memberId   Int      @map("member_id")
+  postId     Int      @map("post_id")
+  content    String   @map("comment_content")
+  createdAt  DateTime @default(now()) @map("comment_created_at")
+  updatedAt  DateTime? @map("comment_updated_at")
+
+  member Member @relation(fields: [memberId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@map("tbl_comment")
+}
+
+model SavedRecipe {
+  id        Int      @id @default(autoincrement()) @map("saved_recipe_id")
+  createdAt DateTime? @map("saved_recipe_created_at")
+  memberId  Int      @map("member_id")
+  recipeId  Int      @map("recipe_id")
+
+  member Member @relation(fields: [memberId], references: [id])
+  recipe Recipe @relation(fields: [recipeId], references: [id])
+
+  @@unique([memberId, recipeId])
+  @@map("tbl_saved_recipe")
+}
+
+model PostLike {
+  id        Int      @id @default(autoincrement()) @map("post_like_id")
+  createdAt DateTime? @map("post_like_created_at")
+  memberId  Int      @map("member_id")
+  postId    Int      @map("post_id")
+
+  member Member @relation(fields: [memberId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id])
+
+  @@unique([memberId, postId])
+  @@map("tbl_post_like")
+}
+
+model PostIngredientUsed {
+  id        Int      @id @default(autoincrement()) @map("post_ingredient_used_id")
+  createdAt DateTime? @map("post_ingredient_used_created_at")
+  postId    Int      @map("post_id")
+  ingredientId Int   @map("ingredient_id")
+
+  post       Post       @relation(fields: [postId], references: [id])
+  ingredient Ingredient @relation(fields: [ingredientId], references: [id])
+
+  @@unique([postId, ingredientId])
+  @@map("tbl_post_ingredient_used")
+}
