@@ -18,6 +18,7 @@ model Member {
   id Int @id @default(autoincrement())  @map("member_id")
   memberEmail String @unique @map("member_email")
   memberName String @map("member_name")
+  // ✅ memberNickname     String    @unique @map("member_nickname")
   memberXp Int @default(0) @map("member_xp")
   memberAge Int? @map("member_age")
   memberAddress String? @map("member_address")
@@ -107,6 +108,7 @@ model Recipe {
   recipeXp      Int      @default(0) @map("recipe_xp")
   createdAt     DateTime @default(now()) @map("recipe_created_at")
   updatedAt     DateTime? @map("recipe_updated_at")
+  // ✅ updatedAt        DateTime @updatedAt @map("recipe_updated_at")
   deletedAt     DateTime? @map("recipe_deleted_at")
   recipeCategory String?  @map("recipe_category")
 
@@ -135,6 +137,7 @@ model Ingredient {
   id               Int     @id @default(autoincrement()) @map("ingredient_id")
   ingredientName   String  @unique @map("ingredient_name")
   createdAt        DateTime? @map("ingredient_created_at")
+  // ✅ createdAt          DateTime @default(now()) @map("ingredient_created_at")
   ingredientCategory String @map("ingredient_category")
   ingredientImageUrl String? @map("ingredient_image_url")
 
@@ -149,9 +152,12 @@ model MyFridge {
   id            Int      @id @default(autoincrement()) @map("fridge_id")
   memberId      Int      @map("member_id")
   fridgeQuantity String  @map("fridge_quantity")
-  expireDate    Int?     @map("fridge_expire_date")
+  expireDate    Int?     @map("fridge_expire_date") // ✅ expireDate     DateTime? @map("fridge_expire_date")
+
   createdAt     DateTime? @map("fridge_created_at")
+  // ✅ createdAt      DateTime  @default(now()) @map("fridge_created_at")
   updatedAt     DateTime? @map("fridge_updated_at")
+  // ✅ updatedAt      DateTime  @updatedAt @map("fridge_updated_at")
   deletedAt     DateTime? @map("fridge_deleted_at")
   ingredientId  Int      @map("ingredient_id")
 
@@ -169,6 +175,7 @@ model Post {
   postContent String  @map("post_content")
   createdAt  DateTime @default(now()) @map("post_created_at")
   updatedAt  DateTime? @map("post_updated_at")
+  // ✅ updatedAt   DateTime  @updatedAt @map("post_updated_at")
   postXp     Int      @default(0) @map("post_xp")
   recipeId   Int      @map("recipe_id")
   deletedAt  DateTime? @map("post_deleted_at")
@@ -203,6 +210,7 @@ model Comment {
   content    String   @map("comment_content")
   createdAt  DateTime @default(now()) @map("comment_created_at")
   updatedAt  DateTime? @map("comment_updated_at")
+  // ✅ updatedAt DateTime @updatedAt @map("comment_updated_at")
 
   member Member @relation(fields: [memberId], references: [id])
   post   Post   @relation(fields: [postId], references: [id])
@@ -213,6 +221,7 @@ model Comment {
 model SavedRecipe {
   id        Int      @id @default(autoincrement()) @map("saved_recipe_id")
   createdAt DateTime? @map("saved_recipe_created_at")
+  // ✅ createdAt DateTime @default(now()) @map("saved_recipe_created_at")
   memberId  Int      @map("member_id")
   recipeId  Int      @map("recipe_id")
 
@@ -226,6 +235,7 @@ model SavedRecipe {
 model PostLike {
   id        Int      @id @default(autoincrement()) @map("post_like_id")
   createdAt DateTime? @map("post_like_created_at")
+  // ✅ createdAt DateTime @default(now()) @map("post_like_created_at")
   memberId  Int      @map("member_id")
   postId    Int      @map("post_id")
 
@@ -239,6 +249,8 @@ model PostLike {
 model PostIngredientUsed {
   id        Int      @id @default(autoincrement()) @map("post_ingredient_used_id")
   createdAt DateTime? @map("post_ingredient_used_created_at")
+  // ✅ createdAt    DateTime @default(now()) @map("post_ingredient_used_created_at")
+
   postId    Int      @map("post_id")
   ingredientId Int   @map("ingredient_id")
 

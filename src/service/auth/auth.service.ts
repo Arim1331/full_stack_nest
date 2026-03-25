@@ -1,7 +1,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import bcrypt from 'bcrypt';
 import { JwtPayload } from 'src/type/auth.type';
-import { TokenDTO } from 'src/domain/auth/dto/auth.dto';
+import { TokenDTO } from 'src/domain/auth/dto/auth/auth.dto';
 import { JwtTokenService } from '../jwt/jwt.service';
 import { RedisService } from '../redis/redis.service';
 import { MemberService } from '../member/member.service';
