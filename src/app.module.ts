@@ -15,6 +15,6 @@ import { PostService } from './service/post/post.service';
     PrismaModule
   ],
   controllers: [],
-  providers: [PostService],
+  providers: [],
 })
 export class AppModule {}
