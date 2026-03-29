@@ -18,7 +18,7 @@ model Member {
   id Int @id @default(autoincrement())  @map("member_id")
   memberEmail String @unique @map("member_email")
   memberName String @map("member_name")
-  memberNickname     String    @unique @map("member_nickname")
+  memberNickname     String?    @unique @map("member_nickname")
   memberXp Int @default(0) @map("member_xp")
   memberAge Int? @map("member_age")
   memberAddress String? @map("member_address")

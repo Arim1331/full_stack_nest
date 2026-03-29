@@ -13,7 +13,7 @@ export class MemberRepository {
     async save(member:MemberRegisterDTO):Promise<MemberEntity>{
         const memberCreate = {
             memberEmail: member.memberEmail,
-            memberNickName: member.memberName,
+            memberNickName: member.memberName ?? null,
             memberName: member.memberName,
             memberAge: member.memberAge,
             memberAddress: member.memberAddress,

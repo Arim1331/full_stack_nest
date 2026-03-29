@@ -11,6 +11,10 @@ export class MemberRegisterDTO {
     @ApiProperty({example: "홍길동", description: "회원 이름"})
     @IsString() @IsNotEmpty()
     memberName: string;
+
+    @ApiProperty({example: "유진", description: "회원 닉네임", required: false})
+    @IsString() @IsOptional()
+    memberNickname?: string;
     
     @ApiProperty({example: 20, description: "회원 나이"})
     @IsNumber() @IsOptional()
@@ -109,6 +113,10 @@ export class MemberResponseDTO {
     @ApiProperty({example: "홍길동", description: "회원 이름"})
     @IsString() @IsNotEmpty()
     memberName: string;
+
+    @ApiProperty({example: "유진", description: "회원 닉네임"})
+    @IsString() @IsOptional()
+    memberNickname?: string;
     
     @ApiProperty({example: 20, description: "회원 나이"})
     @IsNumber() @IsOptional()
