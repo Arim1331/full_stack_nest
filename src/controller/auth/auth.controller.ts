@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags, ApiCookieAuth } from '@nestjs/swagger';
 import { AuthProvider } from '@prisma/client';
+import { AuthGuard } from '@nestjs/passport';
 import type { Response } from 'express';
 import { ApiResponse } from 'src/common/dto/api-response.dto';
 import { OAuthLoginDTO } from 'src/domain/member/dto/member.dto';
@@ -10,12 +11,14 @@ import { LocalAuthGuard } from 'src/module/auth/guard/local-auth.guard';
 import { NaverAuthGuard } from 'src/module/auth/guard/naver-auth.guard';
 import { AuthService } from 'src/service/auth/auth.service';
 import type { AuthRequest } from 'src/type/auth.type';
+import { MemberService } from 'src/service/member/member.service';
 
 @Controller('auth')
 export class AuthController {
 
     constructor(
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
+        private readonly memberService: MemberService
     ){;}
 
     // 로그인
@@ -45,7 +48,11 @@ export class AuthController {
             sameSite: 'lax'
         })
 
-        return new ApiResponse("로그인이 성공하였습니다", req.user);
+        // [수정 핵심] req.user(최소정보) 대신 DB에서 전체 정보를 조회해서 반환합니다.
+        const userDetail = await this.memberService.getMember(req.user.id);
+
+        // 이제 프론트의 Login.jsx는 상세 정보가 담긴 userDetail을 받게 됩니다.
+        return new ApiResponse("로그인이 성공하였습니다", userDetail);
     }
 
     @ApiOperation({summary: "로그아웃 서비스"})
@@ -236,6 +243,18 @@ export class AuthController {
         return res.redirect("http://localhost:3000/auth/merge")
     }
 
+    @ApiOperation({ summary: 'JWT 검증 테스트', description: '쿠키의 토큰을 읽어 유저 정보를 반환합니다.' })
+    @ApiCookieAuth('accessToken')
+    @UseGuards(AuthGuard('jwt')) // 우리가 만든 JwtStrategy 실행
+    @Get('test-jwt')
+    async testJwt(@Req() req) {
+    // req.user에는 { id: 15 }만 있을 테니, 이걸로 전체 정보를 조회합니다.
+    const userDetail = await this.memberService.getMember(req.user.id); 
+    return {
+        message: "JWT 인증 성공",
+        data: userDetail // 여기에 memberName, createdAt 등이 포함됩니다.
+    };
+}
 
 
 
