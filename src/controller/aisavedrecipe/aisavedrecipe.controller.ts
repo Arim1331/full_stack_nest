@@ -7,11 +7,13 @@ import {
   Param,
   Post,
   Req,
+  UseGuards,
 } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateAiSavedRecipeDTO } from 'src/domain/aisavedrecipe/dto/aisavedrecipe.dto';
-import AiSavedRecipeException from 'src/exception/exception.aisavedrecipe';
 import { AisavedrecipeService } from 'src/service/aisavedrecipe/aisavedrecipe.service';
+import type { AuthRequest } from 'src/type/auth.type'; // import 뒤에 type 붙여주기(데코레이터가 있는 파일에서는 타입스크립트가 메타데이터를 만들려고 하는데 AuthRequest는 실제 js 런타임에 존재하는 값이 아니라 타입 전용이라서 그냥 import 하면 컴파일러가 헷갈려함)
 
 @Controller('aisavedrecipe')
 export class AisavedrecipeController {
@@ -21,10 +23,14 @@ export class AisavedrecipeController {
   @ApiOperation({ summary: 'AI 저장 레시피 생성' })
   @HttpCode(201)
   @Post()
-  async create(@Body() createAiSavedRecipeDTO: CreateAiSavedRecipeDTO) {
+  @UseGuards(AuthGuard('jwt'))
+  async create(
+    @Body() createAiSavedRecipeDTO: CreateAiSavedRecipeDTO, 
+    @Req() req: AuthRequest) 
+    {
     return await this.aisavedrecipeService.createAiSavedRecipe({
       ...createAiSavedRecipeDTO,
-      memberId: 2,
+      memberId: req.user.id,
     }); // memberId 집어넣은 이유는 jwt 인증 안해서 임시로 넣음
   }
 
