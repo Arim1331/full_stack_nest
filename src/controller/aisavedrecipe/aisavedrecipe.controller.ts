@@ -31,7 +31,7 @@ export class AisavedrecipeController {
     return await this.aisavedrecipeService.createAiSavedRecipe({
       ...createAiSavedRecipeDTO,
       memberId: req.user.id,
-    }); // memberId 집어넣은 이유는 jwt 인증 안해서 임시로 넣음
+    }); 
   }
 
   // 회원별 목록 전체 조회
