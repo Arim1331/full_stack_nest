@@ -1,6 +1,6 @@
 // 저징 레시피 생성
 export class CreateAiSavedRecipeDTO {
-  memberId: number
+  // memberId: number  지우는 이유: 컨트롤러에서 이걸 무시하고 req.user.id를 넣고 있음. 클라이언트가 회원 번호를 보내는 구조보다 서버가 인증정보로 넣는 구조가 더 안전.
   title: string
   description?: string
   imageUrl?: string
