@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AiSavedRecipeListResponseDTO, AiSavedRecipeResponseDTO, CreateAiSavedRecipeDTO } from 'src/domain/aisavedrecipe/dto/aisavedrecipe.dto';
+import { AiSavedRecipeListResponseDTO, AiSavedRecipeResponseDTO, CreateAiSavedRecipeWithMemberDTO } from 'src/domain/aisavedrecipe/dto/aisavedrecipe.dto';
 import AiSavedRecipeException from 'src/exception/exception.aisavedrecipe';
 import { AiSavedRecipeRepository } from 'src/repository/aisavedrecipe/aisavedrecipe.repository';
 
@@ -10,7 +10,7 @@ export class AisavedrecipeService {
   ) {}
 
   // 저장
-  async createAiSavedRecipe(createAiSavedRecipeDTO: CreateAiSavedRecipeDTO) {
+  async createAiSavedRecipe(createAiSavedRecipeDTO: CreateAiSavedRecipeWithMemberDTO) {
     const savedRecipe = await this.aisavedrecipeRepository.save(
       createAiSavedRecipeDTO,
     );
