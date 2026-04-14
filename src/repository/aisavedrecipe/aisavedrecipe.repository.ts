@@ -34,16 +34,22 @@ export class AiSavedRecipeRepository {
   }
 
   // 상세 조회
-  async findById(id: number) {
-    return await this.prisma.aiSavedRecipe.findUnique({
-      where: { id }
+  async findByIdAndMemberId(id: number, memberId: number) {
+    return await this.prisma.aiSavedRecipe.findFirst({
+      where: { 
+        id,
+        memberId
+      }
     })
   }
 
   // 삭제
-  async remove(id: number) {
-    return await this.prisma.aiSavedRecipe.delete({
-      where: { id } 
+  async remove(id: number, memberId: number) {
+    return await this.prisma.aiSavedRecipe.deleteMany({
+      where: { 
+        id,
+        memberId
+      } 
     })
   }
 

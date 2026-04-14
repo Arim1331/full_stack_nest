@@ -39,8 +39,8 @@ export class AisavedrecipeService {
   }
 
   // 상세 조회
-  async getAiSavedRecipeDetail(id: number): Promise<AiSavedRecipeResponseDTO> {
-    const savedRecipe = await this.aisavedrecipeRepository.findById(id)
+  async getAiSavedRecipeDetail(id: number, memberId: number): Promise<AiSavedRecipeResponseDTO> {
+    const savedRecipe = await this.aisavedrecipeRepository.findByIdAndMemberId(id, memberId)
 
     if(!savedRecipe) {
       throw new AiSavedRecipeException('저장된 AI 레시피가 없습니다.')
@@ -65,14 +65,14 @@ export class AisavedrecipeService {
   }
 
   // 삭제
-  async deleteAiSavedRecipe(id: number) {
-    const savedRecipe = await this.aisavedrecipeRepository.findById(id)
+  async deleteAiSavedRecipe(id: number, memberId: number) {
+    const savedRecipe = await this.aisavedrecipeRepository.findByIdAndMemberId(id, memberId)
 
     if(!savedRecipe) {
       throw new AiSavedRecipeException("삭제할 AI 저장 레시피가 없습니다.")
     }
 
-    await this.aisavedrecipeRepository.remove(id)
+    await this.aisavedrecipeRepository.remove(id, memberId)
 
     return {
       message: 'AI 저장 레시피 삭제 완료'
