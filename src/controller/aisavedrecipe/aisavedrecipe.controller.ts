@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   Post,
   Req,
   UseGuards,
@@ -25,38 +26,44 @@ export class AisavedrecipeController {
   @HttpCode(201)
   @Post()
   async create(
-    @Body() createAiSavedRecipeDTO: CreateAiSavedRecipeDTO, 
-    @Req() req: AuthRequest) 
-    {
+    @Body() createAiSavedRecipeDTO: CreateAiSavedRecipeDTO,
+    @Req() req: AuthRequest,
+  ) {
+    console.log('req.user:', req.user);
+
     return await this.aisavedrecipeService.createAiSavedRecipe({
       ...createAiSavedRecipeDTO,
-      memberId: req.user.id,
-    }); 
+      memberId: req.user.id, // 로그인한 사용자 기준으로 요청
+    });
   }
 
-  // 회원별 목록 전체 조회
+  // 회원별 저장한 레시피 목록 전체 조회
   @ApiOperation({ summary: '회원별 AI 저장 레시피 목록 조회' })
   @HttpCode(200)
   @Get('/my')
   async findAllByMemberId(@Req() req: AuthRequest) {
-    return await this.aisavedrecipeService.getAiSavedRecipeList(
-      (req.user.id),
-    );
+    return await this.aisavedrecipeService.getAiSavedRecipeList(req.user.id);
   }
 
   // 상세 조회
   @ApiOperation({ summary: 'AI 저장 레시피 상세 조회' })
   @HttpCode(200)
   @Get('/:id')
-  async findById(@Param('id') id: string) {
-    return await this.aisavedrecipeService.getAiSavedRecipeDetail(Number(id));
+  async findById(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthRequest,
+  ) {
+    return await this.aisavedrecipeService.getAiSavedRecipeDetail(
+      id,
+      req.user.id,
+    );
   }
 
   // 삭제
   @ApiOperation({ summary: 'AI 저장 레시피 삭제' })
   @HttpCode(200)
   @Delete('/:id')
-  async remove(@Param('id') id: string) {
-    return await this.aisavedrecipeService.deleteAiSavedRecipe(Number(id));
+  async remove(@Param('id', ParseIntPipe) id: number, @Req() req: AuthRequest) {
+    return await this.aisavedrecipeService.deleteAiSavedRecipe(id, req.user.id);
   }
 }
