@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateAiSavedRecipeDTO } from "src/domain/aisavedrecipe/dto/aisavedrecipe.dto";
+import { CreateAiSavedRecipeWithMemberDTO } from "src/domain/aisavedrecipe/dto/aisavedrecipe.dto";
 import { PrismaService } from "src/service/prisma/prisma.service";
 
 @Injectable()
@@ -7,7 +7,7 @@ export class AiSavedRecipeRepository {
   constructor(private readonly prisma: PrismaService){;}
 
   // 저장
-  async save(createAiSavedRecipeDTO: CreateAiSavedRecipeDTO) {
+  async save(createAiSavedRecipeDTO: CreateAiSavedRecipeWithMemberDTO) {
     return await this.prisma.aiSavedRecipe.create({
       data: {
         memberId: createAiSavedRecipeDTO.memberId,
