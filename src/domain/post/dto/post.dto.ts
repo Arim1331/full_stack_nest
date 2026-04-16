@@ -1,4 +1,4 @@
-import { isNumber, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer"
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -13,7 +13,7 @@ export class PostDTO {
   member: {
     id: number;
     memberName: string;
-  } // 이게 memberId임
+  } // 작성자 정보
 
   @ApiProperty({ example: "첫 번째 게시글", description: "게시글 제목"})
   @IsString()
@@ -40,7 +40,7 @@ export class PostDTO {
   recipe: {
     id: number;
     recipeTitle: string;
-  } // recipeId: number;
+  } // 인증 레시피 정보
   
   @ApiProperty({ example: "2026-03-23T09:00:00.000Z", description: "게시글 삭제일", required: false, nullable: true })
   @IsOptional()
@@ -59,6 +59,7 @@ export class PostCreateDTO {
     "인증 레시피 아이디"
   })
   @Type(() => Number)
+  @IsNumber()
   recipeId: number;
 
   @ApiProperty({ example: "첫 번째 게시글", description: "게시글 제목" })
