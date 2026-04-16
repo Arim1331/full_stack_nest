@@ -20,20 +20,18 @@ import { FridgeService } from 'src/service/fridge/fridge.service';
 export class FridgeController {
   constructor(private readonly fridgeService: FridgeService) {}
 
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get('/recommend')
   recommend(@Req() req) {
-    // const memberId = req.user.id; // jwt.strategy 만들어진 이후에 밑줄 삭제 및 이 줄 활성화
-    const memberId = 1;
+    const memberId = req.user.id; // jwt.strategy 만들어진 이후에 밑줄 삭제 및 이 줄 활성화
 
     return this.fridgeService.recommendRecipe(memberId);
   }
 
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Req() req, @Body() dto: CreateFridgeDto) {
-    // const memberId = req.user.id; // jwt.strategy 만들어진 이후에 밑줄 삭제 및 이 줄 활성화
-    const memberId = 1;
+    const memberId = req.user.id; // jwt.strategy 만들어진 이후에 밑줄 삭제 및 이 줄 활성화
 
     return this.fridgeService.create({
       ...dto,
@@ -41,24 +39,25 @@ export class FridgeController {
     });
   }
 
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Req() req) {
-    // const memberId = req.user.id; // jwt.strategy 만들어진 이후에 밑줄 삭제 및 이 줄 활성화
-    const memberId = 1;
+    const memberId = req.user.id; // jwt.strategy 만들어진 이후에 밑줄 삭제 및 이 줄 활성화
 
     return this.fridgeService.findAll(memberId);
   }
 
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateFridgeDto) {
-    return this.fridgeService.update(Number(id), dto);
+  update(@Param('id') id: string, @Req() req, @Body() dto: UpdateFridgeDto) {
+    const memberId = req.user.id;
+    return this.fridgeService.update(Number(id), memberId, dto);
   }
 
-  // @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.fridgeService.remove(Number(id));
+  remove(@Param('id') id: string, @Req() req) {
+    const memberId = req.user.id;
+    return this.fridgeService.remove(Number(id), memberId);
   }
 }
