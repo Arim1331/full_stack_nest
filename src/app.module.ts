@@ -14,6 +14,9 @@ import { PostLikeRepository } from './repository/postlike/postlike.repository';
 import { AisavedrecipeService } from './service/aisavedrecipe/aisavedrecipe.service';
 import { AisavedrecipeController } from './controller/aisavedrecipe/aisavedrecipe.controller';
 import { AisavedrecipeModule } from './module/aisavedrecipe/aisavedrecipe.module';
+import { CommentController } from './controller/comment/comment.controller';
+import { CommentModule } from './module/comment/comment.module';
+import { CommentService } from './service/comment/comment.service';
 
 @Module({
   imports: [
@@ -25,9 +28,10 @@ import { AisavedrecipeModule } from './module/aisavedrecipe/aisavedrecipe.module
     FridgeModule,
     OpenaiModule,
     PostlikeModule,
-    AisavedrecipeModule
+    AisavedrecipeModule,
+    CommentModule
   ],
-  controllers: [],
-  providers: [ImageService ],
+  controllers: [CommentController],
+  providers: [ImageService, CommentService ],
 })
 export class AppModule {}
