@@ -60,7 +60,7 @@ export class CommentUpdateDTO  {
   content?: string
 }
 
-// 댓글 삭제
+// 댓글 (선택) 삭제
 export class CommentDeleteSelectedDTO {
   @ApiProperty({ example: [1, 2, 3], description: "선택 삭제할 댓글 아이디 목록"})
   @IsArray()
