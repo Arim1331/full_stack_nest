@@ -29,9 +29,9 @@ import { CommentService } from './service/comment/comment.service';
     OpenaiModule,
     PostlikeModule,
     AisavedrecipeModule,
-    CommentModule
+    // CommentModule
   ],
-  controllers: [CommentController],
-  providers: [ImageService, CommentService ],
+  controllers: [],
+  providers: [ImageService,  ],
 })
 export class AppModule {}
