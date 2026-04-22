@@ -15,17 +15,17 @@ enum AuthProvider {
 }
 
 model Member {
-  id Int @id @default(autoincrement())  @map("member_id")
-  memberEmail String @unique @map("member_email")
-  memberName String @map("member_name")
-  memberNickname     String?    @unique @db.VarChar(191) @map("member_nickname")
-  memberXp Int @default(0) @map("member_xp")
-  memberAge Int? @map("member_age")
-  memberAddress String? @map("member_address")
-  memberProfile String?@map("member_profile")
-  memberCreateAt DateTime @default(now()) @map("member_create_at")
-  memberUpdatedAt  DateTime  @updatedAt @map("member_updated_at")
-  memberLevel Int @default(1) @map("member_level")
+  id              Int      @id @default(autoincrement()) @map("member_id")
+  memberEmail     String   @unique @map("member_email")
+  memberName      String   @map("member_name")
+  memberNickname  String?  @unique @map("member_nickname") @db.VarChar(191)
+  memberXp        Int      @default(0) @map("member_xp")
+  memberAge       Int?     @map("member_age")
+  memberAddress   String?  @map("member_address")
+  memberProfile   String?  @map("member_profile")
+  memberCreateAt  DateTime @default(now()) @map("member_create_at")
+  memberUpdatedAt DateTime @updatedAt @map("member_updated_at")
+  memberLevel     Int      @default(1) @map("member_level")
 
   // id               Int       @id @default(autoincrement()) @map("member_id")
   // memberEmail      String    @unique @map("member_email")
@@ -37,26 +37,25 @@ model Member {
   // memberUpdatedAt  DateTime  @updatedAt @map("member_updated_at")
   // memberLevel      Int       @default(1) @map("member_level")
 
-  socials          AuthAccount[]
-  userBadge        UserBadge[]
-  post             Post[]
-  comment          Comment[]
-  savedRecipe      SavedRecipe[]
-  postLike         PostLike[]
-  myFridge         MyFridge[]
+  socials       AuthAccount[]
+  userBadge     UserBadge[]
+  post          Post[]
+  comment       Comment[]
+  savedRecipe   SavedRecipe[]
+  postLike      PostLike[]
+  myFridge      MyFridge[]
   aiSavedRecipe AiSavedRecipe[]
 
   @@map("tbl_member")
 }
 
 model AuthAccount {
-
-  id Int @id @default(autoincrement()) @map("auth_account_id")
-  memberProvider AuthProvider @map("member_provider")
-  memberProviderId String? @map("member_provider_id")
-  memberPassword String? @map("member_password")
-  memberId Int @map("member_id")
-  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  id               Int          @id @default(autoincrement()) @map("auth_account_id")
+  memberProvider   AuthProvider @map("member_provider")
+  memberProviderId String?      @map("member_provider_id")
+  memberPassword   String?      @map("member_password")
+  memberId         Int          @map("member_id")
+  member           Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
   // id              Int           @id @default(autoincrement()) @map("auth_account_id")
   // memberId        Int           @map("member_id")
@@ -73,13 +72,13 @@ model AuthAccount {
 }
 
 model Badge {
-  id                   Int     @id @default(autoincrement()) @map("badge_id")
-  badgeName            String  @map("badge_name")
-  badgeDescription     String  @map("badge_description")
-  badgeImageUrl        String? @map("badge_image_url")
-  badgeRewardXp        Int     @default(0) @map("badge_reward_xp")
-  badgeConditionType   String? @map("badge_condition_type")
-  badgeConditionValue  Int?    @map("badge_condition_value")
+  id                  Int     @id @default(autoincrement()) @map("badge_id")
+  badgeName           String  @map("badge_name")
+  badgeDescription    String  @map("badge_description")
+  badgeImageUrl       String? @map("badge_image_url")
+  badgeRewardXp       Int     @default(0) @map("badge_reward_xp")
+  badgeConditionType  String? @map("badge_condition_type")
+  badgeConditionValue Int?    @map("badge_condition_value")
 
   userBadge UserBadge[]
 
@@ -87,10 +86,10 @@ model Badge {
 }
 
 model UserBadge {
-  id             Int      @id @default(autoincrement()) @map("user_badge_id")
-  memberId       Int      @map("member_id")
-  badgeId        Int      @map("badge_id")
-  achievedAt     DateTime @default(now()) @map("user_badge_achieve_at")
+  id         Int      @id @default(autoincrement()) @map("user_badge_id")
+  memberId   Int      @map("member_id")
+  badgeId    Int      @map("badge_id")
+  achievedAt DateTime @default(now()) @map("user_badge_achieve_at")
 
   member Member @relation(fields: [memberId], references: [id])
   badge  Badge  @relation(fields: [badgeId], references: [id])
@@ -100,17 +99,17 @@ model UserBadge {
 }
 
 model Recipe {
-  id            Int      @id @default(autoincrement()) @map("recipe_id")
-  recipeTitle   String   @map("recipe_title")
-  recipeDesc    String?  @map("recipe_desc")
-  recipeImageUrl String? @map("recipe_image_url")
-  cookTimeMin   Int?     @map("recipe_cook_time_min")
-  recipeDifficulty String @map("recipe_difficulty")
-  recipeXp      Int      @default(0) @map("recipe_xp")
-  createdAt     DateTime @default(now()) @map("recipe_created_at")
-  updatedAt        DateTime @updatedAt @map("recipe_updated_at")
-  deletedAt     DateTime? @map("recipe_deleted_at")
-  recipeCategory String?  @map("recipe_category")
+  id               Int       @id @default(autoincrement()) @map("recipe_id")
+  recipeTitle      String    @map("recipe_title")
+  recipeDesc       String?   @map("recipe_desc")
+  recipeImageUrl   String?   @map("recipe_image_url")
+  cookTimeMin      Int?      @map("recipe_cook_time_min")
+  recipeDifficulty String    @map("recipe_difficulty")
+  recipeXp         Int       @default(0) @map("recipe_xp")
+  createdAt        DateTime  @default(now()) @map("recipe_created_at")
+  updatedAt        DateTime  @updatedAt @map("recipe_updated_at")
+  deletedAt        DateTime? @map("recipe_deleted_at")
+  recipeCategory   String?   @map("recipe_category")
 
   recipeIngredient RecipeIngredient[]
   savedRecipe      SavedRecipe[]
@@ -120,11 +119,11 @@ model Recipe {
 }
 
 model RecipeIngredient {
-  id              Int    @id @default(autoincrement()) @map("recipe_ingredient_id")
+  id               Int     @id @default(autoincrement()) @map("recipe_ingredient_id")
   ingredientAmount String? @map("recipe_ingredient_amount")
-  sortOrder       Int    @default(0) @map("recipe_ingredient_sort_order")
-  recipeId        Int    @map("recipe_id")
-  ingredientId    Int    @map("ingredient_id")
+  sortOrder        Int     @default(0) @map("recipe_ingredient_sort_order")
+  recipeId         Int     @map("recipe_id")
+  ingredientId     Int     @map("ingredient_id")
 
   recipe     Recipe     @relation(fields: [recipeId], references: [id])
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
@@ -134,11 +133,11 @@ model RecipeIngredient {
 }
 
 model Ingredient {
-  id               Int     @id @default(autoincrement()) @map("ingredient_id")
-  ingredientName   String  @map("ingredient_name")
+  id                 Int      @id @default(autoincrement()) @map("ingredient_id")
+  ingredientName     String   @map("ingredient_name")
   createdAt          DateTime @default(now()) @map("ingredient_created_at")
-  ingredientCategory String @map("ingredient_category")
-  ingredientImageUrl String? @map("ingredient_image_url")
+  ingredientCategory String   @map("ingredient_category")
+  ingredientImageUrl String?  @map("ingredient_image_url")
 
   recipeIngredient   RecipeIngredient[]
   myFridge           MyFridge[]
@@ -148,16 +147,16 @@ model Ingredient {
 }
 
 model MyFridge {
-  id            Int      @id @default(autoincrement()) @map("fridge_id")
-  memberId      Int      @map("member_id")
+  id             Int       @id @default(autoincrement()) @map("fridge_id")
+  memberId       Int       @map("member_id")
   fridgeQuantity Float
-unit String
+  unit           String
   expireDate     DateTime? @map("fridge_expire_date")
 
-  createdAt      DateTime  @default(now()) @map("fridge_created_at")
-  updatedAt      DateTime  @updatedAt @map("fridge_updated_at")
-  deletedAt     DateTime? @map("fridge_deleted_at")
-  ingredientId  Int      @map("ingredient_id")
+  createdAt    DateTime  @default(now()) @map("fridge_created_at")
+  updatedAt    DateTime  @updatedAt @map("fridge_updated_at")
+  deletedAt    DateTime? @map("fridge_deleted_at")
+  ingredientId Int       @map("ingredient_id")
 
   member     Member     @relation(fields: [memberId], references: [id])
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
@@ -167,15 +166,15 @@ unit String
 }
 
 model Post {
-  id         Int      @id @default(autoincrement()) @map("post_id")
-  memberId   Int      @map("member_id")
-  postTitle  String   @map("post_title")
-  postContent String  @map("post_content")
-  createdAt  DateTime @default(now()) @map("post_created_at")
+  id          Int       @id @default(autoincrement()) @map("post_id")
+  memberId    Int       @map("member_id")
+  postTitle   String    @map("post_title")
+  postContent String    @map("post_content")
+  createdAt   DateTime  @default(now()) @map("post_created_at")
   updatedAt   DateTime  @updatedAt @map("post_updated_at")
-  postXp     Int      @default(0) @map("post_xp")
-  recipeId   Int      @map("recipe_id")
-  deletedAt  DateTime? @map("post_deleted_at")
+  postXp      Int       @default(0) @map("post_xp")
+  recipeId    Int       @map("recipe_id")
+  deletedAt   DateTime? @map("post_deleted_at")
 
   member Member @relation(fields: [memberId], references: [id])
   recipe Recipe @relation(fields: [recipeId], references: [id])
@@ -189,27 +188,27 @@ model Post {
 }
 
 model PostImage {
-  id           Int      @id @default(autoincrement()) @map("post_image_id")
-  postId       Int      @map("post_id")
-  imageUrl     String   @map("post_image_url")
-  imageOrder   Int      @default(0) @map("post_image_order")
-  createdAt    DateTime @default(now()) @map("post_image_create_at")
+  id         Int      @id @default(autoincrement()) @map("post_image_id")
+  postId     Int      @map("post_id")
+  imageUrl   String   @map("post_image_url")
+  imageOrder Int      @default(0) @map("post_image_order")
+  createdAt  DateTime @default(now()) @map("post_image_create_at")
 
-  post Post @relation(fields: [postId], references: [id])
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("tbl_post_image")
 }
 
 model Comment {
-  id         Int      @id @default(autoincrement()) @map("comment_id")
-  memberId   Int      @map("member_id")
-  postId     Int      @map("post_id")
-  content    String   @map("comment_content")
-  createdAt  DateTime @default(now()) @map("comment_created_at")
+  id        Int      @id @default(autoincrement()) @map("comment_id")
+  memberId  Int      @map("member_id")
+  postId    Int      @map("post_id")
+  content   String   @map("comment_content")
+  createdAt DateTime @default(now()) @map("comment_created_at")
   updatedAt DateTime @updatedAt @map("comment_updated_at")
 
   member Member @relation(fields: [memberId], references: [id])
-  post   Post   @relation(fields: [postId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("tbl_comment")
 }
@@ -234,20 +233,19 @@ model PostLike {
   postId    Int      @map("post_id")
 
   member Member @relation(fields: [memberId], references: [id])
-  post   Post   @relation(fields: [postId], references: [id])
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, postId])
   @@map("tbl_post_like")
 }
 
 model PostIngredientUsed {
-  id        Int      @id @default(autoincrement()) @map("post_ingredient_used_id")
+  id           Int      @id @default(autoincrement()) @map("post_ingredient_used_id")
   createdAt    DateTime @default(now()) @map("post_ingredient_used_created_at")
+  postId       Int      @map("post_id")
+  ingredientId Int      @map("ingredient_id")
 
-  postId    Int      @map("post_id")
-  ingredientId Int   @map("ingredient_id")
-
-  post       Post       @relation(fields: [postId], references: [id])
+  post       Post       @relation(fields: [postId], references: [id], onDelete: Cascade)
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
 
   @@unique([postId, ingredientId])
@@ -255,22 +253,22 @@ model PostIngredientUsed {
 }
 
 model AiSavedRecipe {
-  id          Int      @id @default(autoincrement()) @map("ai_saved_recipe_id")
-  memberId    Int      @map("member_id")
+  id       Int @id @default(autoincrement()) @map("ai_saved_recipe_id")
+  memberId Int @map("member_id")
 
   title       String
   description String?
   imageUrl    String?
 
-  cookTime    Int?     @map("cook_time")
-  difficulty  String?  @map("difficulty")
-  category    String?  @map("category")
-  xp          Int      @default(0) @map("xp")
+  cookTime   Int?    @map("cook_time")
+  difficulty String? @map("difficulty")
+  category   String? @map("category")
+  xp         Int     @default(0) @map("xp")
 
   ingredients Json
   steps       Json
 
-  createdAt   DateTime @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
 
