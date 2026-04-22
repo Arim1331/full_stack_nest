@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger"
 import { Type } from "class-transformer"
 import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString } from "class-validator"
 
-// 댓글 dto
+// 댓글 조회용 dto
 export class CommentDTO {
   @ApiProperty({ example: 1, description: "댓글 아이디"})
   @IsNumber()
@@ -28,20 +28,15 @@ export class CommentDTO {
   @Type(() => Date)
   updatedAt: Date
   
-  @ApiProperty({ example: {id: 1, memberName: "홍길동" }, description: "댓글 수정일"})
+  @ApiProperty({ example: {id: 1, memberName: "홍길동" }, description: "작성자 정보"})
   member: {
     id: number
     memberName: string
   }
 }
 
-// 댓글 생성
+// 댓글 생성 (프론트 요청용)
 export class CommentCreateDTO  {
-  @ApiProperty({ example: 1, description: "작성자 아이디"})
-  @Type(() => Number)
-  @IsNumber()
-  memberId: number
-  
   @ApiProperty({ example: 1, description: "게시글 아이디"})
   @Type(() => Number)
   @IsNumber()
@@ -52,9 +47,21 @@ export class CommentCreateDTO  {
   content: string
 }
 
+// 서버 내부 저장용
+export class CommentCreateServiceDTO {
+  memberId: number
+  postId: number
+  content: string
+}
+
+
 // 댓글 수정
 export class CommentUpdateDTO  {
-  @ApiProperty({ example: "수정된 댓글 내용입니다.", description: "수정할 댓글 내용", required: false})
+  @ApiProperty({ 
+    example: "수정된 댓글 내용입니다.", 
+    description: "수정할 댓글 내용", 
+    required: false
+  })
   @IsString()
   @IsOptional()
   content?: string

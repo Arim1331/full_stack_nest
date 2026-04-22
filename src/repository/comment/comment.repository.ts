@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CommentCreateDTO, CommentUpdateDTO } from "src/domain/comment/dto/comment.dto";
+import { CommentCreateDTO, CommentCreateServiceDTO, CommentUpdateDTO } from "src/domain/comment/dto/comment.dto";
 import { PrismaService } from "src/service/prisma/prisma.service";
 
 // 모달이 내 게시글, 타인 게시글 이렇게 나뉘는데 그렇다고 해서 레포지토리를 둘로 나누는 게 아니라, 하나의 레포에 "댓글 관리 기능을 충분히 넣어두는 방식" 으로 설계함. 즉, MyPostModal 기준으로 넉넉하게 만들었음.
@@ -24,10 +24,10 @@ export class CommentRepository {
   constructor(private readonly prisma: PrismaService){;}
 
   // 댓글 생성
-  async save(commentCreateDTO: CommentCreateDTO): Promise<void> {
+  async save(commentCreateDTO: CommentCreateServiceDTO): Promise<void> {
     await this.prisma.comment.create({
-      data: commentCreateDTO
-    })
+      data: commentCreateDTO,
+    });
   }
 
   // 게시글별 댓글 조회
@@ -36,16 +36,16 @@ export class CommentRepository {
       where: { postId },
       include: {
         member: {
-          select : {
+          select: {
             id: true,
-            memberName: true
-          }
-        }
+            memberName: true,
+          },
+        },
       },
       orderBy: {
-        createdAt: "desc"
-      }
-    })
+        createdAt: 'desc',
+      },
+    });
   }
 
   // 댓글 단일 조회
@@ -56,32 +56,28 @@ export class CommentRepository {
         member: {
           select: {
             id: true,
-            memberName: true
-          }
-        }
-      }
-    })
+            memberName: true,
+          },
+        },
+      },
+    });
   }
 
-  // 내 댓글인지 확인할 때 같이 쓰기 좋음("내 게시글의 댓글만 관리 가능" 같은 검증 넣기 쉬움)
-  async findCommentByIdWithPost(id: number) {
-    return await this.prisma.comment.findUnique({
-      where: { id },
+  // 여러 댓글 조회
+  async findCommentsByIds(commentIds: number[]) {
+    return await this.prisma.comment.findMany({
+      where: {
+        id: { in: commentIds },
+      },
       include: {
         member: {
           select: {
             id: true,
             memberName: true
           }
-        },
-        post: {
-          select: {
-            id: true,
-            memberId: true
-          }
         }
       }
-    })
+    });
   }
 
   // 댓글 수정
@@ -90,51 +86,31 @@ export class CommentRepository {
       where: { id },
       data: {
         ...commentUpdateDTO,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
   }
 
   // 댓글 단일 삭제
   async remove(id: number): Promise<void> {
     await this.prisma.comment.delete({
-      where: { id }
-    })
+      where: { id },
+    });
   }
 
-  // 게시글별 댓글 전체 삭제
+  // 게시글별 전체 삭제
   async removeAllByPostId(postId: number): Promise<void> {
     await this.prisma.comment.deleteMany({
-      where: { postId }
-    })
+      where: { postId },
+    });
   }
 
-  // 선택한 댓글들 삭제(체크박스로 선택 삭제)
+  // 선택 삭제
   async removeSelected(commentIds: number[]): Promise<void> {
     await this.prisma.comment.deleteMany({
       where: {
-        id: {
-          in: commentIds
-        }
-      }
-    })
-  }
-
-  // 선택한 댓글들이 특정 게시글 소속인지 확인용("내 게시글의 댓글만 관리 가능" 같은 검증 넣기 쉬움)
-  async findCommentsByIds(commentIds: number[]) {
-    return await this.prisma.comment.findMany({
-      where: {
-        id: {
-          in: commentIds
-        }
+        id: { in: commentIds },
       },
-      select: {
-        id: true,
-        postId: true,
-        memberId: true
-      }
-    })
+    });
   }
-
-
 }

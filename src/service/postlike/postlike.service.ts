@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PostLikeDTO } from 'src/domain/postlike/dto/postlike.dto';
+import { PostLikeDTO, PostLikeServiceDTO } from 'src/domain/postlike/dto/postlike.dto';
 import PostLikeException from 'src/exception/exception.postlike';
 import { PostLikeRepository } from 'src/repository/postlike/postlike.repository';
 
@@ -9,7 +9,7 @@ export class PostlikeService {
   constructor(private readonly postlikeRepository: PostLikeRepository){;}
 
   // 좋아요 생성
-  async createPostLike(postLikeCreateDTO: PostLikeDTO){
+  async createPostLike(postLikeCreateDTO: PostLikeServiceDTO){
     const { memberId, postId } = postLikeCreateDTO
 
     const existingLike = await this.postlikeRepository.findPostLike(memberId, postId)
@@ -21,7 +21,7 @@ export class PostlikeService {
   }
 
   // 좋아요 삭제
-  async deletePostLike(postLikeDeleteDTO: PostLikeDTO) {
+  async deletePostLike(postLikeDeleteDTO: PostLikeServiceDTO) {
     const { memberId, postId } = postLikeDeleteDTO
 
     const existingLike = await this.postlikeRepository.findPostLike(memberId, postId)

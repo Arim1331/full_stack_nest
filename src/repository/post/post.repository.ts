@@ -1,6 +1,44 @@
-import { Injectable } from "@nestjs/common";
-import { PostCreateDTO, PostDTO, PostUpdatedDTO } from "src/domain/post/dto/post.dto";
-import { PrismaService } from "src/service/prisma/prisma.service";
+import { Injectable } from '@nestjs/common';
+import { PostCreateDTO, PostUpdatedDTO } from 'src/domain/post/dto/post.dto';
+import { PrismaService } from 'src/service/prisma/prisma.service';
+import { Prisma } from '@prisma/client';
+
+export type PostWithLikeInfo = Prisma.PostGetPayload<{
+  include: {
+    member: {
+      select: {
+        id: true;
+        memberName: true;
+      };
+    };
+    recipe: {
+      select: {
+        id: true;
+        recipeTitle: true;
+      };
+    };
+    postLike: {
+      select: {
+        memberId: true;
+      };
+    };
+    comment: {
+      include: {
+        member: {
+          select: {
+            id: true
+            memberName: true
+          }
+        }
+      }
+    }
+    _count: {
+      select: {
+        postLike: true;
+      };
+    };
+  };
+}>;
 
 // DB 접근 담당
 @Injectable()
@@ -9,7 +47,7 @@ export class PostRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   // 게시글 목록 전체 조회
-  async findPosts() {
+  async findPosts(): Promise<PostWithLikeInfo[]> {
     const foundPosts = await this.prisma.post.findMany({
       include: {
         member: {
@@ -24,6 +62,26 @@ export class PostRepository {
             recipeTitle: true,
           },
         },
+        postLike: {
+          select: {
+            memberId: true,
+          },
+        },
+        comment: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                memberName: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            postLike: true,
+          },
+        },
       },
     });
 
@@ -31,7 +89,7 @@ export class PostRepository {
   }
 
   // 게시글 단일 조회
-  async findPostById(id: number) {
+  async findPostById(id: number): Promise<PostWithLikeInfo | null> {
     const foundPost = await this.prisma.post.findUnique({
       where: { id },
       include: {
@@ -47,6 +105,26 @@ export class PostRepository {
             recipeTitle: true,
           },
         },
+        postLike: {
+          select: {
+            memberId: true,
+          },
+        },
+        comment: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                memberName: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            postLike: true,
+          },
+        },
       },
     });
 
@@ -56,20 +134,19 @@ export class PostRepository {
   // 게시글 생성
   async save(postCreateDTO: PostCreateDTO): Promise<void> {
     await this.prisma.post.create({
-      // data: postCreateDTO,
       data: postCreateDTO,
     });
   }
 
   // 게시글 수정
-  async modify(id:number, postUpdatedDTO: PostUpdatedDTO): Promise<void> {
-      await this.prisma.post.update({
-        where: { id },
-        data: {
-          ...postUpdatedDTO,
-          updatedAt: new Date(),
-        },
-      });
+  async modify(id: number, postUpdatedDTO: PostUpdatedDTO): Promise<void> {
+    await this.prisma.post.update({
+      where: { id },
+      data: {
+        ...postUpdatedDTO,
+        updatedAt: new Date(),
+      },
+    });
   }
 
   // 게시글 삭제
