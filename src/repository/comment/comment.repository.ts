@@ -110,7 +110,7 @@ export class CommentRepository {
   }
 
   // 선택한 댓글들 삭제(체크박스로 선택 삭제)
-  async removeSelectd(commentIds: number[]): Promise<void> {
+  async removeSelected(commentIds: number[]): Promise<void> {
     await this.prisma.comment.deleteMany({
       where: {
         id: {
