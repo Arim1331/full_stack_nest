@@ -9,20 +9,33 @@ export class PostService {
   constructor(private readonly postRepository: PostRepository ) {;}
 
   // 게시글 목록 전체 조회
-  async getPosts() {
-    return await this.postRepository.findPosts()
+  async getPosts(memberId?: number) {
+    const foundPosts = await this.postRepository.findPosts()
+    
+    return foundPosts.map((post) => ({
+      ...post,
+      likes: post._count.postLike,
+      liked: memberId
+        ? post.postLike.some((like) => like.memberId === memberId)
+        : false
+    }))
     // 데이터를 돌려줘야하니 return
   }
 
   // 게시글 단일 조회
-  async getPost(id: number) {
+  async getPost(id: number, memberId?: number) {
     const foundPost =  await this.postRepository.findPostById(id)
 
     if(!foundPost) {
       throw new PostException("게시글을 찾을 수 없습니다.")
     }
-    return foundPost
-
+    return { 
+      ...foundPost,
+      likes: foundPost._count.postLike,
+      liked: memberId
+        ? foundPost.postLike.some((like) => like.memberId === memberId)
+        : false
+    }
   }
 
   // 게시글 생성
