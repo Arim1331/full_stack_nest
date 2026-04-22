@@ -36,8 +36,11 @@ export class PostController {
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(201)
   @Post("")
-  async create(@Body() postCreateDTO: PostCreateDTO) {
-    await this.postService.createPost(postCreateDTO)
+  async create(@Req() req: AuthRequest, @Body() postCreateDTO: PostCreateDTO) {
+    await this.postService.createPost({
+      ...postCreateDTO,
+      memberId: req.user.id
+    })
   }
 
   // 게시글 수정
@@ -45,8 +48,8 @@ export class PostController {
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(200)
   @Put(":id") 
-  async update(@Param("id") id: string, @Body() postUpdatedDTO: PostUpdatedDTO) {
-    await this.postService.updatePost(Number(id), postUpdatedDTO)
+  async update(@Param("id") id: string, @Req() req: AuthRequest, @Body() postUpdatedDTO: PostUpdatedDTO) {
+    await this.postService.updatePost(Number(id), req.user.id, postUpdatedDTO)
   }
 
   // 게시글 삭제
@@ -54,8 +57,8 @@ export class PostController {
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(200)
   @Delete(":id")
-  async remove(@Param("id") id: string) {
-    await this.postService.deletePost(Number(id))
+  async remove(@Param("id") id: string, @Req() req: AuthRequest) {
+    await this.postService.deletePost(Number(id), req.user.id)
   }
 
 }

@@ -22,6 +22,16 @@ export type PostWithLikeInfo = Prisma.PostGetPayload<{
         memberId: true;
       };
     };
+    comment: {
+      include: {
+        member: {
+          select: {
+            id: true
+            memberName: true
+          }
+        }
+      }
+    }
     _count: {
       select: {
         postLike: true;
@@ -57,6 +67,16 @@ export class PostRepository {
             memberId: true,
           },
         },
+        comment: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                memberName: true
+              }
+            }
+          }
+        },
         _count: {
           select: {
             postLike: true,
@@ -89,6 +109,16 @@ export class PostRepository {
           select: {
             memberId: true,
           },
+        },
+        comment: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                memberName: true
+              }
+            }
+          }
         },
         _count: {
           select: {
