@@ -9,9 +9,7 @@ import { OpenaiModule } from './module/openai/openai.module';
 import { ImageService } from './service/image/image.service';
 import { PostlikeModule } from './module/postlike/postlike.module';
 import { AisavedrecipeModule } from './module/aisavedrecipe/aisavedrecipe.module';
-import { CommentController } from './controller/comment/comment.controller';
 import { CommentModule } from './module/comment/comment.module';
-import { CommentService } from './service/comment/comment.service';
 
 @Module({
   imports: [
@@ -24,7 +22,7 @@ import { CommentService } from './service/comment/comment.service';
     OpenaiModule,
     PostlikeModule,
     AisavedrecipeModule,
-    // CommentModule
+    CommentModule
   ],
   controllers: [],
   providers: [ImageService,  ],
