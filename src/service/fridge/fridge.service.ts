@@ -321,7 +321,24 @@ export class FridgeService {
     // =========================
     // 10. 최종 반환
     // =========================
+    const savedRecipe = await this.prisma.recipe.create({
+      data: {
+        recipeTitle: parsed.title,
+        recipeDesc: recipeText.slice(0, 190),
+        recipeImageUrl: image,
+        recipeDifficulty: "쉬움", 
+        recipeXp: 50, 
+        recipeCategory: "기타"
+      }
+    })
+
+    console.log("ingredientList 최종:", ingredientList);
+console.log("savedRecipe:", savedRecipe);
+
     return {
+      id: savedRecipe.id,
+      recipeId: savedRecipe.id, // 프론트 호환용
+
       title: parsed.title,
       ingredients: ingredientList,
       recipe: recipeText,
