@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString } from "class-validator";
 import { Type } from "class-transformer"
 import { ApiProperty } from "@nestjs/swagger";
 
@@ -69,6 +69,16 @@ export class PostCreateDTO {
   @ApiProperty({ example: "내용입니다", description: "게시글 내용" })
   @IsString()
   postContent: string;
+
+  @ApiProperty({
+    example: ["연어", "마늘", "시금치"],
+    description: "사용한 재료 목록",
+    required: false
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  ingredientNames?: string[]
 
 }
 

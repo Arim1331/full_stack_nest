@@ -326,14 +326,14 @@ export class FridgeService {
         recipeTitle: parsed.title,
         recipeDesc: recipeText.slice(0, 190),
         recipeImageUrl: image,
-        recipeDifficulty: "쉬움", 
-        recipeXp: 50, 
-        recipeCategory: "기타"
-      }
-    })
+        recipeDifficulty: '쉬움',
+        recipeXp: 50,
+        recipeCategory: '기타',
+      },
+    });
 
-    console.log("ingredientList 최종:", ingredientList);
-console.log("savedRecipe:", savedRecipe);
+    console.log('ingredientList 최종:', ingredientList);
+    console.log('savedRecipe:', savedRecipe);
 
     return {
       id: savedRecipe.id,

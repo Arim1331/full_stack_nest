@@ -26,12 +26,12 @@ export type PostWithLikeInfo = Prisma.PostGetPayload<{
       include: {
         member: {
           select: {
-            id: true
-            memberName: true
-          }
-        }
-      }
-    }
+            id: true;
+            memberName: true;
+          };
+        };
+      };
+    };
     _count: {
       select: {
         postLike: true;
@@ -62,6 +62,11 @@ export class PostRepository {
             recipeTitle: true,
           },
         },
+        postIngredientUsed: {
+          include: {
+            ingredient: true,
+          },
+        },
         postLike: {
           select: {
             memberId: true,
@@ -72,10 +77,10 @@ export class PostRepository {
             member: {
               select: {
                 id: true,
-                memberName: true
-              }
-            }
-          }
+                memberName: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
@@ -105,6 +110,11 @@ export class PostRepository {
             recipeTitle: true,
           },
         },
+        postIngredientUsed: {
+          include: {
+            ingredient: true,
+          },
+        },
         postLike: {
           select: {
             memberId: true,
@@ -115,10 +125,10 @@ export class PostRepository {
             member: {
               select: {
                 id: true,
-                memberName: true
-              }
-            }
-          }
+                memberName: true,
+              },
+            },
+          },
         },
         _count: {
           select: {
@@ -133,8 +143,40 @@ export class PostRepository {
 
   // 게시글 생성
   async save(postCreateDTO: PostCreateDTO): Promise<void> {
+    const { ingredientNames, ...postData } = postCreateDTO;
+
+    const ingredients: { id: number }[] = [];
+
+    for (const name of ingredientNames ?? []) {
+      let found = await this.prisma.ingredient.findFirst({
+        where: { ingredientName: name },
+        select: { id: true },
+      });
+
+      if (!found) {
+        found = await this.prisma.ingredient.create({
+          data: {
+            ingredientName: name,
+            ingredientCategory: '기타',
+          },
+          select: { id: true },
+        });
+      }
+
+      ingredients.push(found);
+    }
+
     await this.prisma.post.create({
-      data: postCreateDTO,
+      data: {
+        ...postData,
+        postIngredientUsed: ingredients.length
+          ? {
+              create: ingredients.map((ingredient) => ({
+                ingredientId: ingredient.id,
+              })),
+            }
+          : undefined,
+      },
     });
   }
 
