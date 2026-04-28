@@ -101,7 +101,7 @@ model UserBadge {
 model Recipe {
   id               Int       @id @default(autoincrement()) @map("recipe_id")
   recipeTitle      String    @map("recipe_title")
-  recipeDesc       String?   @map("recipe_desc")
+  recipeDesc       String?   @db.Text @map("recipe_desc")
   recipeImageUrl   String?   @map("recipe_image_url")
   cookTimeMin      Int?      @map("recipe_cook_time_min")
   recipeDifficulty String    @map("recipe_difficulty")
@@ -169,7 +169,7 @@ model Post {
   id          Int       @id @default(autoincrement()) @map("post_id")
   memberId    Int       @map("member_id")
   postTitle   String    @map("post_title")
-  postContent String    @map("post_content")
+  postContent String    @db.Text @map("post_content")
   createdAt   DateTime  @default(now()) @map("post_created_at")
   updatedAt   DateTime  @updatedAt @map("post_updated_at")
   postXp      Int       @default(0) @map("post_xp")
