@@ -10,6 +10,7 @@ import { ImageService } from './service/image/image.service';
 import { PostlikeModule } from './module/postlike/postlike.module';
 import { AisavedrecipeModule } from './module/aisavedrecipe/aisavedrecipe.module';
 import { CommentModule } from './module/comment/comment.module';
+import { PostimageModule } from './module/postimage/postimage.module';
 
 @Module({
   imports: [
@@ -22,9 +23,10 @@ import { CommentModule } from './module/comment/comment.module';
     OpenaiModule,
     PostlikeModule,
     AisavedrecipeModule,
-    CommentModule
+    CommentModule,
+    PostimageModule,
   ],
   controllers: [],
-  providers: [ImageService,  ],
+  providers: [],
 })
 export class AppModule {}

@@ -17,6 +17,11 @@ export type PostWithLikeInfo = Prisma.PostGetPayload<{
         recipeTitle: true;
       };
     };
+    postImage: {
+      orderBy: {
+        imageOrder: 'asc';
+      };
+    };
     postLike: {
       select: {
         memberId: true;
@@ -60,6 +65,11 @@ export class PostRepository {
           select: {
             id: true,
             recipeTitle: true,
+          },
+        },
+        postImage: {
+          orderBy: {
+            imageOrder: 'asc',
           },
         },
         postIngredientUsed: {
@@ -108,6 +118,11 @@ export class PostRepository {
           select: {
             id: true,
             recipeTitle: true,
+          },
+        },
+        postImage: {
+          orderBy: {
+            imageOrder: 'asc',
           },
         },
         postIngredientUsed: {
