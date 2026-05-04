@@ -41,8 +41,8 @@ export class PostService {
   }
 
   // 게시글 생성
-  async createPost(postCreateDTO: PostCreateDTO): Promise<void> {
-    await this.postRepository.save(postCreateDTO)
+  async createPost(postCreateDTO: PostCreateDTO) {
+    return await this.postRepository.save(postCreateDTO)
     // 행동만 하면 return 없어도 됨
   }
 
