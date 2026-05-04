@@ -37,7 +37,7 @@ export class PostController {
   @HttpCode(201)
   @Post("")
   async create(@Req() req: AuthRequest, @Body() postCreateDTO: PostCreateDTO) {
-    await this.postService.createPost({
+    return await this.postService.createPost({
       ...postCreateDTO,
       memberId: req.user.id
     })

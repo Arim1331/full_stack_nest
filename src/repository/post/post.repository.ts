@@ -157,7 +157,7 @@ export class PostRepository {
   }
 
   // 게시글 생성
-  async save(postCreateDTO: PostCreateDTO): Promise<void> {
+  async save(postCreateDTO: PostCreateDTO) {
     const { ingredientNames, ...postData } = postCreateDTO;
 
     const ingredients: { id: number }[] = [];
@@ -181,7 +181,7 @@ export class PostRepository {
       ingredients.push(found);
     }
 
-    await this.prisma.post.create({
+    return await this.prisma.post.create({
       data: {
         ...postData,
         postIngredientUsed: ingredients.length

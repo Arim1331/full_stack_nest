@@ -13,10 +13,10 @@ export class PostimageController {
   @HttpCode(201)
   @Post(":postId")
   async create(
-    @Param('postId') postId:number,
+    @Param('postId') postId:string,
     @Body() postImageCreateDTO: PostImageCreateDTO
   ) {
-    await this.postImageService.createPostImage(postId, postImageCreateDTO)
+    await this.postImageService.createPostImage(Number(postId), postImageCreateDTO)
   }
 
   // 게시글 이미지 조회
@@ -24,8 +24,8 @@ export class PostimageController {
   @HttpCode(200)
   @Get(":postId")
   async findByPostId(
-    @Param('postId') postId: number) {
-      return await this.postImageService.findByPostId(postId)
+    @Param('postId') postId: string) {
+      return await this.postImageService.findByPostId(Number(postId))
     }
 
   // 게시글 이미지 전체 교체
