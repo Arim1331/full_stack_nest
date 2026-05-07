@@ -102,7 +102,7 @@ model Recipe {
   id               Int       @id @default(autoincrement()) @map("recipe_id")
   recipeTitle      String    @map("recipe_title")
   recipeDesc       String?   @db.Text @map("recipe_desc")
-  recipeImageUrl   String?   @map("recipe_image_url")
+  recipeImageUrl   String?   @db.Text @map("recipe_image_url")
   cookTimeMin      Int?      @map("recipe_cook_time_min")
   recipeDifficulty String    @map("recipe_difficulty")
   recipeXp         Int       @default(0) @map("recipe_xp")
