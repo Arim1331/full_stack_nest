@@ -292,6 +292,11 @@ export class FridgeService {
       'korean food ' + parsed.title,
     );
 
+    const safeImage =
+      typeof image === 'string' && image.length <= 255
+        ? image
+        : '/assets/images/default-recipe.png';
+
     // =========================
     // 6. Step 분리
     // =========================
