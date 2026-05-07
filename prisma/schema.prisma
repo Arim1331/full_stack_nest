@@ -190,7 +190,7 @@ model Post {
 model PostImage {
   id         Int      @id @default(autoincrement()) @map("post_image_id")
   postId     Int      @map("post_id")
-  imageUrl   String   @map("post_image_url")
+  imageUrl   String   @db.Text @map("post_image_url")
   imageOrder Int      @default(0) @map("post_image_order")
   createdAt  DateTime @default(now()) @map("post_image_create_at")
 
