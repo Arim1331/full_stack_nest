@@ -1,12 +1,19 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, Post, Put, UploadedFile,
+  UseInterceptors } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PostImageCreateDTO, PostImageDeleteDTO, PostImageUpdateDTO } from 'src/domain/postimage/postimage.dto';
 import { PostimageService } from 'src/service/postimage/postimage.service';
+import { FileInterceptor } from '@nestjs/platform-express'; //추가
+import { S3Service } from 'src/service/s3/s3.service'; //추가
+import type { MulterFile } from 'src/domain/member/dto/member.dto'; //추가
 
 @ApiTags('Post Image')
 @Controller('postimage')
 export class PostimageController {
-  constructor(private readonly postImageService: PostimageService){;}
+  constructor(
+  private readonly postImageService: PostimageService,
+  private readonly s3Service: S3Service, // 추가
+) {;}
 
   // 게시글 이미지 등록
   @ApiOperation({ summary: "게시글 이미지 등록" })
@@ -18,6 +25,54 @@ export class PostimageController {
   ) {
     await this.postImageService.createPostImage(Number(postId), postImageCreateDTO)
   }
+
+  // 게시글 이미지 파일 업로드 후 S3 URL 저장
+@ApiOperation({ summary: '게시글 이미지 S3 업로드' })
+@HttpCode(201)
+@Post(':postId/upload')
+@UseInterceptors(
+  FileInterceptor('image', {
+    limits: {
+      fileSize: 5 * 1024 * 1024,
+    },
+    fileFilter: (req, file, callback) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+        return callback(
+          new Error('JPG 또는 PNG 파일만 업로드 가능합니다.'),
+          false,
+        );
+      }
+
+      callback(null, true);
+    },
+  }),
+)
+async upload(
+  @Param('postId') postId: string,
+  @UploadedFile() file: MulterFile,
+) {
+  if (!file) {
+    throw new Error('이미지 파일이 없습니다.');
+  }
+
+  const { originalUrl } = await this.s3Service.uploadFile(
+    file,
+    'post-images',
+  );
+
+  await this.postImageService.createPostImage(Number(postId), {
+    images: [
+      {
+        imageUrl: originalUrl,
+        imageOrder: 0,
+      },
+    ],
+  });
+
+  return {
+    imageUrl: originalUrl,
+  };
+}
 
   // 게시글 이미지 조회
   @ApiOperation({ summary: "게시글 이미지 조회" })

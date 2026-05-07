@@ -3,8 +3,10 @@ import { PostimageController } from 'src/controller/postimage/postimage.controll
 import { PostImageRepository } from 'src/repository/postimage/postimage.repository';
 import { PostimageService } from 'src/service/postimage/postimage.service';
 import { PrismaService } from 'src/service/prisma/prisma.service';
+import { S3Module } from '../s3/s3.module';
 
 @Module({
+  imports: [S3Module],
   controllers: [PostimageController],
   providers: [PostImageRepository, PostimageService, PrismaService],
   exports: [PostimageService]
