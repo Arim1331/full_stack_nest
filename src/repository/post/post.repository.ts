@@ -157,12 +157,18 @@ export class PostRepository {
   }
 
   // 게시글 생성
-  async save(postCreateDTO: PostCreateDTO) {
+  async save(postCreateDTO: PostCreateDTO, earnedXp: number) {
     const { ingredientNames, ...postData } = postCreateDTO;
+
+    const cleanedIngredientNames = [
+      ...new Set(
+        (ingredientNames ?? []).map((name) => name.trim()).filter(Boolean),
+      ),
+    ];
 
     const ingredients: { id: number }[] = [];
 
-    for (const name of ingredientNames ?? []) {
+    for (const name of cleanedIngredientNames) {
       let found = await this.prisma.ingredient.findFirst({
         where: { ingredientName: name },
         select: { id: true },
@@ -184,6 +190,7 @@ export class PostRepository {
     return await this.prisma.post.create({
       data: {
         ...postData,
+        postXp: earnedXp,
         postIngredientUsed: ingredients.length
           ? {
               create: ingredients.map((ingredient) => ({
@@ -197,12 +204,57 @@ export class PostRepository {
 
   // 게시글 수정
   async modify(id: number, postUpdatedDTO: PostUpdatedDTO): Promise<void> {
-    await this.prisma.post.update({
-      where: { id },
-      data: {
-        ...postUpdatedDTO,
-        updatedAt: new Date(),
-      },
+    const { ingredientNames, ...postData } = postUpdatedDTO;
+
+    await this.prisma.$transaction(async (tx) => {
+      const ingredients: { id: number }[] = [];
+
+      if (ingredientNames) {
+        for (const name of ingredientNames) {
+          const trimmedName = name.trim();
+
+          if (!trimmedName) continue;
+
+          let found = await tx.ingredient.findFirst({
+            where: { ingredientName: trimmedName },
+            select: { id: true },
+          });
+
+          if (!found) {
+            found = await tx.ingredient.create({
+              data: {
+                ingredientName: trimmedName,
+                ingredientCategory: '기타',
+              },
+              select: { id: true },
+            });
+          }
+
+          ingredients.push(found);
+        }
+
+        await tx.postIngredientUsed.deleteMany({
+          where: { postId: id },
+        });
+      }
+
+      await tx.post.update({
+        where: { id },
+        data: {
+          ...postData,
+          updatedAt: new Date(),
+
+          ...(ingredientNames
+            ? {
+                postIngredientUsed: {
+                  create: ingredients.map((ingredient) => ({
+                    ingredientId: ingredient.id,
+                  })),
+                },
+              }
+            : {}),
+        },
+      });
     });
   }
 
