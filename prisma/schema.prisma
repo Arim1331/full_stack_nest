@@ -267,6 +267,7 @@ model AiSavedRecipe {
 
   ingredients Json
   steps       Json
+  missingIngredients Json? @map("missing_ingredients")
 
   createdAt DateTime @default(now()) @map("created_at")
 

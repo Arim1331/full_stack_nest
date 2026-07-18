@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { AiSavedRecipeListResponseDTO, AiSavedRecipeResponseDTO, CreateAiSavedRecipeWithMemberDTO } from 'src/domain/aisavedrecipe/dto/aisavedrecipe.dto';
+import {
+  AiSavedRecipeListResponseDTO,
+  AiSavedRecipeResponseDTO,
+  CreateAiSavedRecipeWithMemberDTO,
+} from 'src/domain/aisavedrecipe/dto/aisavedrecipe.dto';
 import AiSavedRecipeException from 'src/exception/exception.aisavedrecipe';
 import { AiSavedRecipeRepository } from 'src/repository/aisavedrecipe/aisavedrecipe.repository';
 
@@ -10,7 +14,9 @@ export class AisavedrecipeService {
   ) {}
 
   // 저장
-  async createAiSavedRecipe(createAiSavedRecipeDTO: CreateAiSavedRecipeWithMemberDTO) {
+  async createAiSavedRecipe(
+    createAiSavedRecipeDTO: CreateAiSavedRecipeWithMemberDTO,
+  ) {
     const savedRecipe = await this.aisavedrecipeRepository.save(
       createAiSavedRecipeDTO,
     );
@@ -22,8 +28,11 @@ export class AisavedrecipeService {
   }
 
   // 회원별 목록 전체 조회
-  async getAiSavedRecipeList(memberId: number): Promise<AiSavedRecipeListResponseDTO[]> {
-    const savedRecipes = await this.aisavedrecipeRepository.findAllByMemberId(memberId)
+  async getAiSavedRecipeList(
+    memberId: number,
+  ): Promise<AiSavedRecipeListResponseDTO[]> {
+    const savedRecipes =
+      await this.aisavedrecipeRepository.findAllByMemberId(memberId);
 
     return savedRecipes.map((recipe) => ({
       id: recipe.id,
@@ -34,16 +43,33 @@ export class AisavedrecipeService {
       difficulty: recipe.difficulty ?? undefined,
       category: recipe.category ?? undefined,
       xp: recipe.xp,
-      createdAt: recipe.createdAt, 
-    }))
+
+      ingredients: recipe.ingredients as {
+        main: string[];
+        sub: string[];
+      },
+
+      steps: recipe.steps as string[],
+
+      missingIngredients:
+        (recipe.missingIngredients as string[] | null) ?? undefined,
+
+      createdAt: recipe.createdAt,
+    }));
   }
 
   // 상세 조회
-  async getAiSavedRecipeDetail(id: number, memberId: number): Promise<AiSavedRecipeResponseDTO> {
-    const savedRecipe = await this.aisavedrecipeRepository.findByIdAndMemberId(id, memberId)
+  async getAiSavedRecipeDetail(
+    id: number,
+    memberId: number,
+  ): Promise<AiSavedRecipeResponseDTO> {
+    const savedRecipe = await this.aisavedrecipeRepository.findByIdAndMemberId(
+      id,
+      memberId,
+    );
 
-    if(!savedRecipe) {
-      throw new AiSavedRecipeException('저장된 AI 레시피가 없습니다.')
+    if (!savedRecipe) {
+      throw new AiSavedRecipeException('저장된 AI 레시피가 없습니다.');
     }
     return {
       id: savedRecipe.id,
@@ -56,26 +82,31 @@ export class AisavedrecipeService {
       category: savedRecipe.category ?? undefined,
       xp: savedRecipe.xp,
       ingredients: savedRecipe.ingredients as {
-        main: string[]
-        sub: string[]
+        main: string[];
+        sub: string[];
       },
       steps: savedRecipe.steps as string[],
-      createdAt: savedRecipe.createdAt, 
-    }
+      missingIngredients:
+        (savedRecipe.missingIngredients as string[] | null) ?? undefined,
+      createdAt: savedRecipe.createdAt,
+    };
   }
 
   // 삭제
   async deleteAiSavedRecipe(id: number, memberId: number) {
-    const savedRecipe = await this.aisavedrecipeRepository.findByIdAndMemberId(id, memberId)
+    const savedRecipe = await this.aisavedrecipeRepository.findByIdAndMemberId(
+      id,
+      memberId,
+    );
 
-    if(!savedRecipe) {
-      throw new AiSavedRecipeException("삭제할 AI 저장 레시피가 없습니다.")
+    if (!savedRecipe) {
+      throw new AiSavedRecipeException('삭제할 AI 저장 레시피가 없습니다.');
     }
 
-    await this.aisavedrecipeRepository.remove(id, memberId)
+    await this.aisavedrecipeRepository.remove(id, memberId);
 
     return {
-      message: 'AI 저장 레시피 삭제 완료'
-    }
+      message: 'AI 저장 레시피 삭제 완료',
+    };
   }
 }

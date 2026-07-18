@@ -285,6 +285,27 @@ export class FridgeService {
       }
     });
 
+    const normalizeIngredientName = (name: string) =>
+      String(name || '')
+        .replace(/\s/g, '')
+        .toLowerCase();
+
+    const fridgeIngredientNames = fridgeItems.map((item) =>
+      normalizeIngredientName(item.ingredient.ingredientName),
+    );
+
+    const missingIngredients = ingredientList
+      .filter((item) => {
+        const recipeIngredientName = normalizeIngredientName(item.name);
+
+        return !fridgeIngredientNames.some(
+          (fridgeName) =>
+            fridgeName.includes(recipeIngredientName) ||
+            recipeIngredientName.includes(fridgeName),
+        );
+      })
+      .map((item) => item.name);
+
     // =========================
     // 5. 대표 이미지
     // =========================
@@ -292,15 +313,33 @@ export class FridgeService {
       'korean food ' + parsed.title,
     );
 
-    const safeImage =
-      typeof image === 'string' && image.length <= 255
-        ? image
-        : '/assets/images/default-recipe.png';
-
     // =========================
     // 6. Step 분리
     // =========================
     const steps = recipeText.split(/\d+\.\s/).filter((s) => s.trim() !== '');
+
+    const rawCookTime = Number(parsed.cookTimeMin);
+
+    const cookTimeMin =
+      Number.isFinite(rawCookTime) && rawCookTime > 0
+        ? Math.round(rawCookTime)
+        : Math.max(10, steps.length * 5);
+
+    const allowedDifficulties = ['쉬움', '보통', '어려움'];
+
+    const difficulty = allowedDifficulties.includes(parsed.difficulty)
+      ? parsed.difficulty
+      : steps.length <= 5
+        ? '쉬움'
+        : steps.length <= 8
+          ? '보통'
+          : '어려움';
+
+    const allowedCategories = ['한식', '중식', '일식', '양식', '기타'];
+
+    const category = allowedCategories.includes(parsed.category)
+      ? parsed.category
+      : '기타';
 
     // =========================
     // 7. GPT step 키워드 생성
@@ -331,9 +370,11 @@ export class FridgeService {
         recipeTitle: parsed.title,
         recipeDesc: recipeText.slice(0, 190),
         recipeImageUrl: image,
-        recipeDifficulty: '쉬움',
-        recipeXp: 50,
-        recipeCategory: '기타',
+        cookTimeMin,
+        recipeDifficulty: difficulty,
+        recipeXp:
+          difficulty === '쉬움' ? 150 : difficulty === '보통' ? 250 : 400,
+        recipeCategory: category,
       },
     });
 
@@ -350,6 +391,15 @@ export class FridgeService {
       image,
       steps,
       stepImages,
+
+      cookTimeMin,
+      cookTime: cookTimeMin,
+      difficulty,
+      level: difficulty,
+      // cookTime과 cookTimeMin, difficulty와 level을 둘 다 주는 이유는 기존 프론트 코드와 호환하기 위해
+      category,
+      xp: savedRecipe.recipeXp,
+      missingIngredients,
     };
   }
 }

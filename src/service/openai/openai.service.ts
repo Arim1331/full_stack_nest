@@ -34,6 +34,12 @@ ${ingredients.map((i) => `- ${i}`).join('\n')}
 
 7. 레시피는 반드시 단계별로 상세하게 작성 (1. 2. 3. 형식)
 
+8. cookTimeMin은 실제 예상 조리시간을 분 단위 정수로 작성
+
+9. difficulty는 반드시 "쉬움", "보통", "어려움" 중 하나
+
+10. category는 반드시 "한식", "중식", "일식", "양식", "기타" 중 하나
+
 ---
 
 반드시 아래 JSON 형식으로만 응답:
@@ -48,7 +54,10 @@ ${ingredients.map((i) => `- ${i}`).join('\n')}
     { "name": "후추", "category": "기타" },
     { "name": "간장", "category": "기타" }
   ],
-  "recipe": "1. ... 2. ... 3. ..."
+  "recipe": "1. ... 2. ... 3. ...",
+  "cookTimeMin": 20,
+  "difficulty": "보통",
+  "category": "한식"
 }
 `;
 
