@@ -19,7 +19,8 @@ export class AiSavedRecipeRepository {
         category: createAiSavedRecipeDTO.category,
         xp: createAiSavedRecipeDTO.xp,
         ingredients: createAiSavedRecipeDTO.ingredients,
-        steps: createAiSavedRecipeDTO.steps
+        steps: createAiSavedRecipeDTO.steps,
+        missingIngredients: createAiSavedRecipeDTO.missingIngredients,
 
       }
     })
