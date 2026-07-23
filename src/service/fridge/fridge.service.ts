@@ -325,15 +325,50 @@ export class FridgeService {
         ? Math.round(rawCookTime)
         : Math.max(10, steps.length * 5);
 
-    const allowedDifficulties = ['쉬움', '보통', '어려움'];
+    const aiDifficultyScoreMap: Record<string, number> = {
+      쉬움: 0,
+      보통: 1,
+      어려움: 2,
+    };
 
-    const difficulty = allowedDifficulties.includes(parsed.difficulty)
-      ? parsed.difficulty
-      : steps.length <= 5
-        ? '쉬움'
-        : steps.length <= 8
+    const aiDifficultyScore =
+      aiDifficultyScoreMap[String(parsed.difficulty || '').trim()] ?? 0;
+
+    /*
+     * 레시피 복잡도 계산
+     *
+     * 조리 단계가 7개 이상이면 1점
+     * 재료가 7개 이상이면 1점
+     * 조리시간이 25분 이상이면 1점
+     */
+    const complexityScore =
+      (steps.length >= 7 ? 1 : 0) +
+      (ingredientList.length >= 7 ? 1 : 0) +
+      (cookTimeMin >= 25 ? 1 : 0);
+
+    /*
+     * 0점: 쉬움
+     * 1~2점: 보통
+     * 3점: 어려움
+     */
+    const calculatedDifficultyScore =
+      complexityScore >= 3 ? 2 : complexityScore >= 1 ? 1 : 0;
+
+    /*
+     * AI가 판단한 난이도와 실제 복잡도 중
+     * 더 높은 쪽을 최종 난이도로 사용
+     */
+    const finalDifficultyScore = Math.max(
+      aiDifficultyScore,
+      calculatedDifficultyScore,
+    );
+
+    const difficulty =
+      finalDifficultyScore === 2
+        ? '어려움'
+        : finalDifficultyScore === 1
           ? '보통'
-          : '어려움';
+          : '쉬움';
 
     const allowedCategories = ['한식', '중식', '일식', '양식', '기타'];
 
@@ -365,6 +400,18 @@ export class FridgeService {
     // =========================
     // 10. 최종 반환
     // =========================
+
+    const getRandomXp = (min: number, max: number) => {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    };
+
+    const recipeXp =
+      difficulty === '쉬움'
+        ? getRandomXp(100, 199)
+        : difficulty === '보통'
+          ? getRandomXp(200, 299)
+          : getRandomXp(300, 500);
+
     const savedRecipe = await this.prisma.recipe.create({
       data: {
         recipeTitle: parsed.title,
@@ -372,8 +419,7 @@ export class FridgeService {
         recipeImageUrl: image,
         cookTimeMin,
         recipeDifficulty: difficulty,
-        recipeXp:
-          difficulty === '쉬움' ? 150 : difficulty === '보통' ? 250 : 400,
+        recipeXp,
         recipeCategory: category,
       },
     });
@@ -383,7 +429,7 @@ export class FridgeService {
 
     return {
       id: savedRecipe.id,
-      recipeId: savedRecipe.id, // 프론트 호환용
+      recipeId: savedRecipe.id,
 
       title: parsed.title,
       ingredients: ingredientList,
@@ -396,9 +442,8 @@ export class FridgeService {
       cookTime: cookTimeMin,
       difficulty,
       level: difficulty,
-      // cookTime과 cookTimeMin, difficulty와 level을 둘 다 주는 이유는 기존 프론트 코드와 호환하기 위해
       category,
-      xp: savedRecipe.recipeXp,
+      xp: recipeXp,
       missingIngredients,
     };
   }
