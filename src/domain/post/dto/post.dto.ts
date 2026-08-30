@@ -92,6 +92,16 @@ export class PostUpdatedDTO {
   @IsOptional()
   @IsString()
   postContent?: string;
+
+  @ApiProperty({
+    example: ["우유", "바나나"],
+    description: "수정할 사용 재료 목록",
+    required: false,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  ingredientNames? : string[]
 }
 
 export class PostDeletedDTO {

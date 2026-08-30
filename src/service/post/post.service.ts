@@ -8,68 +8,75 @@ import { PrismaService } from 'src/service/prisma/prisma.service';
 
 @Injectable()
 export class PostService {
-  constructor(
-    private readonly postRepository: PostRepository,
-    // 뱃지 연동을 위해 추가된 주입
-    private readonly badgeService: BadgeService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly postRepository: PostRepository) {}
+
+  private calculateCookingPostXp(ingredientNames?: string[]): number {
+    const COOKING_COMPLETE_XP = 20;
+    const INGREDIENT_ADD_XP = 10;
+
+    const ingredientCount = [
+      ...new Set(
+        (ingredientNames ?? []).map((name) => name.trim()).filter(Boolean),
+      ),
+    ].length;
+
+    return COOKING_COMPLETE_XP + ingredientCount * INGREDIENT_ADD_XP;
+  }
 
   // 게시글 목록 전체 조회
   async getPosts(memberId?: number) {
     const foundPosts = await this.postRepository.findPosts();
-    
+    console.log('foundPosts', foundPosts);
+
     return foundPosts.map((post) => ({
       ...post,
       likes: post._count.postLike,
       liked: memberId
         ? post.postLike.some((like) => like.memberId === memberId)
-        : false
+        : false,
     }));
+    // 데이터를 돌려줘야하니 return
   }
 
   // 게시글 단일 조회
   async getPost(id: number, memberId?: number) {
     const foundPost = await this.postRepository.findPostById(id);
+    console.log('foundPost', foundPost);
 
-    if(!foundPost) {
-      throw new PostException("게시글을 찾을 수 없습니다.");
+    if (!foundPost) {
+      throw new PostException('게시글을 찾을 수 없습니다.');
     }
-    return { 
+    return {
       ...foundPost,
       likes: foundPost._count.postLike,
       liked: memberId
         ? foundPost.postLike.some((like) => like.memberId === memberId)
-        : false
+        : false,
     };
   }
 
-  // 게시글 생성 (요리 완료 인증 및 뱃지 체크)
-  async createPost(postCreateDTO: PostCreateDTO): Promise<void> {
-    // 1. 기존 게시글 저장 로직 실행
-    await this.postRepository.save(postCreateDTO);
+  // 게시글 생성
+  async createPost(postCreateDTO: PostCreateDTO) {
+    const earnedXp = this.calculateCookingPostXp(postCreateDTO.ingredientNames)
 
-    // 2. 요리 완료 횟수(cookCount) 1 증가
-    // postCreateDTO 내부에 memberId 필드가 있다고 가정합니다.
-    await this.prisma.member.update({
-      where: { id: postCreateDTO.memberId },
-      data: { cookCount: { increment: 1 } },
-    });
-
-    // 3. 뱃지 조건 충족 여부 확인 및 자동 지급
-    await this.badgeService.checkAndAwardBadge(postCreateDTO.memberId, 'COOK_COUNT');
+    return await this.postRepository.save(postCreateDTO, earnedXp);
+    // 행동만 하면 return 없어도 됨
   }
 
   // 게시글 수정
-  async updatePost(id: number, memberId: number, postUpdatedDTO: PostUpdatedDTO): Promise<void> {
+  async updatePost(
+    id: number,
+    memberId: number,
+    postUpdatedDTO: PostUpdatedDTO,
+  ): Promise<void> {
     const foundPost = await this.postRepository.findPostById(id);
 
-    if(!foundPost){
-      throw new PostException("수정할 게시글이 없습니다.");
+    if (!foundPost) {
+      throw new PostException('수정할 게시글이 없습니다.');
     }
 
     if (foundPost.memberId !== memberId) {
-      throw new ForbiddenException("본인 게시글만 수정할 수 있습니다.");
+      throw new ForbiddenException('본인 게시글만 수정할 수 있습니다.');
     }
 
     await this.postRepository.modify(id, postUpdatedDTO);
@@ -79,8 +86,8 @@ export class PostService {
   async deletePost(id: number, memberId: number): Promise<void> {
     const foundPost = await this.postRepository.findPostById(id);
 
-    if(!foundPost) {
-      throw new PostException("삭제할 게시글이 없습니다.");
+    if (!foundPost) {
+      throw new PostException('삭제할 게시글이 없습니다.');
     }
 
     if (foundPost.memberId !== memberId) {

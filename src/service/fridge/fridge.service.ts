@@ -285,6 +285,27 @@ export class FridgeService {
       }
     });
 
+    const normalizeIngredientName = (name: string) =>
+      String(name || '')
+        .replace(/\s/g, '')
+        .toLowerCase();
+
+    const fridgeIngredientNames = fridgeItems.map((item) =>
+      normalizeIngredientName(item.ingredient.ingredientName),
+    );
+
+    const missingIngredients = ingredientList
+      .filter((item) => {
+        const recipeIngredientName = normalizeIngredientName(item.name);
+
+        return !fridgeIngredientNames.some(
+          (fridgeName) =>
+            fridgeName.includes(recipeIngredientName) ||
+            recipeIngredientName.includes(fridgeName),
+        );
+      })
+      .map((item) => item.name);
+
     // =========================
     // 5. 대표 이미지
     // =========================
@@ -292,15 +313,68 @@ export class FridgeService {
       'korean food ' + parsed.title,
     );
 
-    const safeImage =
-      typeof image === 'string' && image.length <= 255
-        ? image
-        : '/assets/images/default-recipe.png';
-
     // =========================
     // 6. Step 분리
     // =========================
     const steps = recipeText.split(/\d+\.\s/).filter((s) => s.trim() !== '');
+
+    const rawCookTime = Number(parsed.cookTimeMin);
+
+    const cookTimeMin =
+      Number.isFinite(rawCookTime) && rawCookTime > 0
+        ? Math.round(rawCookTime)
+        : Math.max(10, steps.length * 5);
+
+    const aiDifficultyScoreMap: Record<string, number> = {
+      쉬움: 0,
+      보통: 1,
+      어려움: 2,
+    };
+
+    const aiDifficultyScore =
+      aiDifficultyScoreMap[String(parsed.difficulty || '').trim()] ?? 0;
+
+    /*
+     * 레시피 복잡도 계산
+     *
+     * 조리 단계가 7개 이상이면 1점
+     * 재료가 7개 이상이면 1점
+     * 조리시간이 25분 이상이면 1점
+     */
+    const complexityScore =
+      (steps.length >= 7 ? 1 : 0) +
+      (ingredientList.length >= 7 ? 1 : 0) +
+      (cookTimeMin >= 25 ? 1 : 0);
+
+    /*
+     * 0점: 쉬움
+     * 1~2점: 보통
+     * 3점: 어려움
+     */
+    const calculatedDifficultyScore =
+      complexityScore >= 3 ? 2 : complexityScore >= 1 ? 1 : 0;
+
+    /*
+     * AI가 판단한 난이도와 실제 복잡도 중
+     * 더 높은 쪽을 최종 난이도로 사용
+     */
+    const finalDifficultyScore = Math.max(
+      aiDifficultyScore,
+      calculatedDifficultyScore,
+    );
+
+    const difficulty =
+      finalDifficultyScore === 2
+        ? '어려움'
+        : finalDifficultyScore === 1
+          ? '보통'
+          : '쉬움';
+
+    const allowedCategories = ['한식', '중식', '일식', '양식', '기타'];
+
+    const category = allowedCategories.includes(parsed.category)
+      ? parsed.category
+      : '기타';
 
     // =========================
     // 7. GPT step 키워드 생성
@@ -326,14 +400,27 @@ export class FridgeService {
     // =========================
     // 10. 최종 반환
     // =========================
+
+    const getRandomXp = (min: number, max: number) => {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    };
+
+    const recipeXp =
+      difficulty === '쉬움'
+        ? getRandomXp(100, 199)
+        : difficulty === '보통'
+          ? getRandomXp(200, 299)
+          : getRandomXp(300, 500);
+
     const savedRecipe = await this.prisma.recipe.create({
       data: {
         recipeTitle: parsed.title,
         recipeDesc: recipeText.slice(0, 190),
         recipeImageUrl: image,
-        recipeDifficulty: '쉬움',
-        recipeXp: 50,
-        recipeCategory: '기타',
+        cookTimeMin,
+        recipeDifficulty: difficulty,
+        recipeXp,
+        recipeCategory: category,
       },
     });
 
@@ -342,7 +429,7 @@ export class FridgeService {
 
     return {
       id: savedRecipe.id,
-      recipeId: savedRecipe.id, // 프론트 호환용
+      recipeId: savedRecipe.id,
 
       title: parsed.title,
       ingredients: ingredientList,
@@ -350,6 +437,14 @@ export class FridgeService {
       image,
       steps,
       stepImages,
+
+      cookTimeMin,
+      cookTime: cookTimeMin,
+      difficulty,
+      level: difficulty,
+      category,
+      xp: recipeXp,
+      missingIngredients,
     };
   }
 }

@@ -268,8 +268,8 @@ model AiSavedRecipe {
   memberId Int @map("member_id")
 
   title       String
-  description String?
-  imageUrl    String?
+  description String? @db.Text
+  imageUrl    String? @db.Text
 
   cookTime   Int?    @map("cook_time")
   difficulty String? @map("difficulty")
@@ -278,6 +278,7 @@ model AiSavedRecipe {
 
   ingredients Json
   steps       Json
+  missingIngredients Json? @map("missing_ingredients")
 
   createdAt DateTime @default(now()) @map("created_at")
 
