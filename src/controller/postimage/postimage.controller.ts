@@ -10,7 +10,7 @@ import {
   UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import {
   PostImageCreateDTO,
   PostImageDeleteDTO,
@@ -45,6 +45,22 @@ export class PostimageController {
 
   // 게시글 이미지 파일 업로드 후 S3 URL 저장
   @ApiOperation({ summary: '게시글 이미지 S3 다중 업로드' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        images: {
+          type: 'array',
+          items: {
+            type: 'string',
+            format: 'binary',
+          },
+        },
+      },
+      required: ['images'],
+    },
+  })
   @HttpCode(201)
   @Post(':postId/upload')
   @UseInterceptors(
