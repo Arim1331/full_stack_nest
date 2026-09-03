@@ -1,14 +1,17 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, Param, ParseIntPipe, Post, Put, UploadedFile, UseInterceptors, Logger } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthProvider } from '@prisma/client';
 import { ApiResponse } from 'src/common/dto/api-response.dto';
-import type { MemberRegisterDTO, MemberUpdateDTO, MulterFile } from 'src/domain/member/dto/member.dto';
+import type { MemberRegisterDTO, MemberUpdateDTO, MulterFile, NicknameChangeDTO } from 'src/domain/member/dto/member.dto';
 import { MemberResponse } from 'src/domain/member/dto/member.response';
 import { MemberService } from 'src/service/member/member.service';
 
 @Controller('members')
 export class MemberController {
+
+    private readonly logger = new Logger(MemberController.name);
+
     constructor(private readonly memberService:MemberService){;}
 
     @ApiOperation({summary: "회원가입 서비스"})
@@ -57,6 +60,26 @@ export class MemberController {
     ):Promise<ApiResponse> {
         const updatedMember = await this.memberService.modify(id, member);
         return new ApiResponse("회원 정보 수정 완료", updatedMember)
+    }
+    
+    // 닉네임 변경(회원정보 수정 세부 내용)
+    @ApiOperation({ summary: "닉네임 변경" })
+    @Put(":id/nickname")
+    @HttpCode(200)
+    async changeNickname(
+        @Param('id', ParseIntPipe) id: number,
+        @Body() member: NicknameChangeDTO
+    ): Promise<ApiResponse> {
+
+        this.logger.log(`[PUT /members/${id}/nickname] 닉네임 변경 요청 - Target Name: ${member.memberName}`);
+
+        const updatedMember =
+            await this.memberService.changeNickname(id, member);
+
+        return new ApiResponse(
+            "닉네임 변경이 완료되었습니다.",
+            updatedMember
+        );
     }
 
     // 회원 탈퇴

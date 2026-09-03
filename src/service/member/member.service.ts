@@ -1,7 +1,7 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { ConflictException ,forwardRef, Inject, Injectable } from '@nestjs/common';
 import { MemberRepository } from 'src/repository/member/member.repository';
 import { AuthService } from '../auth/auth.service';
-import { MemberRegisterDTO, MemberUpdateDTO, MulterFile, OAuthLoginDTO } from 'src/domain/member/dto/member.dto';
+import { MemberRegisterDTO, MemberUpdateDTO, MulterFile, OAuthLoginDTO, NicknameChangeDTO } from 'src/domain/member/dto/member.dto';
 import MemberException from 'src/exception/exception.member';
 import { AuthProvider } from '@prisma/client';
 import { MemberResponse } from 'src/domain/member/dto/member.response';
@@ -139,4 +139,31 @@ export class MemberService {
     async withdraw(id: number): Promise<void> {
         await this.memberRepository.delete(id);
     }
+
+    // 닉네임 변경
+    async changeNickname(
+    id: number,
+    member: NicknameChangeDTO
+) {
+    const foundMember = await this.memberRepository.findMemberById(id);
+
+    if (!foundMember) {
+        throw new MemberException("회원을 찾을 수 없습니다"); 
+    }
+
+    const duplicateMember =
+        await this.memberRepository.findMemberByName(member.memberName);
+
+    if (duplicateMember && duplicateMember.id !== id) {
+        throw new ConflictException("중복된 닉네임 입니다.");
+    }
+
+    const updatedMember =
+        await this.memberRepository.updateNickname(
+            id,
+            member.memberName
+        );
+
+    return updatedMember;
+}
 }

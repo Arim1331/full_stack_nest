@@ -131,6 +131,17 @@ export class MemberResponseDTO {
     memberProfile?: string;
 }
 
+export class NicknameChangeDTO {
+
+    @ApiProperty({
+        example: "유진",
+        description: "변경할 닉네임"
+    })
+    @IsString()
+    @IsNotEmpty()
+    memberName: string;
+}
+
 // 파일 입출력용 추가
 export type MulterFile = {
   fieldname: string;

@@ -120,4 +120,34 @@ export class MemberRepository {
         }
     }
 
+    // 닉네임 중복 확인
+    async findMemberByName(memberName: string): Promise<MemberEntity | null> {
+        return await this.prisma.member.findFirst({
+            where: {
+                memberName
+            },
+            include: {
+                socials: true
+            }
+        });
+    }
+
+    // 닉네임 수정
+    async updateNickname(
+        id: number,
+        memberName: string
+    ): Promise<MemberEntity | null> {
+
+        await this.prisma.member.update({
+            where: {
+                id
+            },
+            data: {
+                memberName
+            }
+        });
+
+        return await this.findMemberById(id);
+    }
+
 }

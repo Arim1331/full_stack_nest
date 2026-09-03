@@ -2,10 +2,8 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post/post.repository';
 import { PostCreateDTO, PostUpdatedDTO } from 'src/domain/post/dto/post.dto';
 import PostException from 'src/exception/exception.post';
-// 추가된 임포트
-import { BadgeService } from '../badge/badge.service'; 
-import { PrismaService } from 'src/service/prisma/prisma.service';
 
+// 비지니스 로직 담당
 @Injectable()
 export class PostService {
   constructor(private readonly postRepository: PostRepository) {}
