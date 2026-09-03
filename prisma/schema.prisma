@@ -38,13 +38,21 @@ model Member {
   // memberLevel      Int       @default(1) @map("member_level")
 
   socials       AuthAccount[]
-  userBadge     UserBadge[]
   post          Post[]
   comment       Comment[]
   savedRecipe   SavedRecipe[]
   postLike      PostLike[]
   myFridge      MyFridge[]
   aiSavedRecipe AiSavedRecipe[]
+
+  cookCount       Int      @default(0) @map("cook_count")       // 요리 완료 횟수
+  ingredientCount Int      @default(0) @map("ingredient_count") // 재료 등록 횟수
+  postCount       Int      @default(0) @map("post_count")       // 게시글 작성 횟수
+  
+  // 대표 뱃지 설정을 위한 필드 (Optional)
+  mainBadgeId     Int?     @map("main_badge_id")
+  
+  userBadges      UserBadge[]
 
   @@map("tbl_member")
 }
@@ -73,12 +81,15 @@ model AuthAccount {
 
 model Badge {
   id                  Int     @id @default(autoincrement()) @map("badge_id")
-  badgeName           String  @map("badge_name")
+  badgeName           String  @unique @map("badge_name")
   badgeDescription    String  @map("badge_description")
   badgeImageUrl       String? @map("badge_image_url")
   badgeRewardXp       Int     @default(0) @map("badge_reward_xp")
   badgeConditionType  String? @map("badge_condition_type")
   badgeConditionValue Int?    @map("badge_condition_value")
+  unlockedDescription String? @db.Text @map("unlocked_description")
+  lockedDescription   String? @db.Text @map("locked_description")
+  category            String? @map("badge_category")
 
   userBadge UserBadge[]
 

@@ -11,6 +11,7 @@ import { PostlikeModule } from './module/postlike/postlike.module';
 import { AisavedrecipeModule } from './module/aisavedrecipe/aisavedrecipe.module';
 import { CommentModule } from './module/comment/comment.module';
 import { PostimageModule } from './module/postimage/postimage.module';
+import { BadgeModule } from './module/badge/badge.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PostimageModule } from './module/postimage/postimage.module';
     AisavedrecipeModule,
     CommentModule,
     PostimageModule,
+    BadgeModule
   ],
   controllers: [],
   providers: [],
