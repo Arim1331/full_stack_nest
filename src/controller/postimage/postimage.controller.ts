@@ -88,6 +88,9 @@ export class PostimageController {
       throw new Error('이미지 파일이 없습니다.');
     }
 
+    // S3에 올리기 전에 게시글 존재 여부 확인
+    await this.postImageService.checkPostExists(Number(postId))
+
     const uploadedImages = await Promise.all(
       files.map(async (file, index) => {
         const { originalUrl } = await this.s3Service.uploadFile(
