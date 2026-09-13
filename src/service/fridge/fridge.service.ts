@@ -228,13 +228,11 @@ export class FridgeService {
     // 1. OpenAI 호출
     // =========================
 
-    console.log('1️⃣ OpenAI 레시피 생성 시작');
 
     const aiResponse = await this.openaiService.getRecipe(
       ingredients.map((i) => i.name),
     );
 
-    console.log('2️⃣ OpenAI 레시피 생성 완료');
 
     if (!aiResponse) {
       return {
@@ -327,11 +325,9 @@ export class FridgeService {
     // =========================
     // 5. 대표 이미지
     // =========================
-    console.log('3️⃣ 대표 이미지 생성 시작');
     const image = await this.imageService.getFoodImage(
       'korean food ' + parsed.title,
     );
-    console.log('4️⃣ 대표 이미지 생성 완료');
     // =========================
     // 6. Step 분리
     // =========================
@@ -398,20 +394,16 @@ export class FridgeService {
     // =========================
     // 7. GPT step 키워드 생성
     // =========================
-    console.log('5️⃣ step 키워드 생성 시작');
     const keywords = await this.openaiService.getStepKeywords(steps);
-    console.log('6️⃣ step 키워드 생성 완료');
 
     // =========================
     // 8. step 이미지 생성
     // =========================
-    console.log('7️⃣ step 이미지 생성 시작');
     const stepImages = await Promise.all(
       keywords.map((keyword) =>
         this.imageService.getFoodImage(`${keyword} food`),
       ),
     );
-    console.log('8️⃣ step 이미지 생성 완료');
 
     // =========================
     // 9. fallback 처리
@@ -435,7 +427,6 @@ export class FridgeService {
           ? getRandomXp(200, 299)
           : getRandomXp(300, 500);
 
-    console.log('9️⃣ DB 레시피 저장 시작');
 
     const savedRecipe = await this.prisma.recipe.create({
       data: {
@@ -449,10 +440,6 @@ export class FridgeService {
       },
     });
 
-    console.log('🔟 DB 레시피 저장 완료');
-
-    console.log('ingredientList 최종:', ingredientList);
-    console.log('savedRecipe:', savedRecipe);
 
     console.log('✅ 추천 API 최종 반환 직전');
     
