@@ -6,6 +6,7 @@ import {
 } from 'src/domain/fridge/dto/fridge.dto';
 import { OpenaiService } from '../openai/openai.service';
 import { ImageService } from '../image/image.service';
+import { BadgeService } from '../badge/badge.service'; // 💡 BadgeService 임포트
 
 @Injectable()
 export class FridgeService {
@@ -13,6 +14,7 @@ export class FridgeService {
     private prisma: PrismaService,
     private readonly openaiService: OpenaiService,
     private readonly imageService: ImageService,
+    private readonly badgeService: BadgeService, // 💡 BadgeService 주입
   ) {}
 
   // =========================
@@ -37,7 +39,7 @@ export class FridgeService {
   }
 
   // =========================
-  // 생성
+  // 생성 (재료 추가 + ingredientCount 증가 & 뱃지 해금 체크)
   // =========================
   async create(dto: CreateFridgeDto) {
     const { memberId, ingredientName, category, quantity, unit, expireDate } =
@@ -69,24 +71,39 @@ export class FridgeService {
       },
     });
 
+    let savedItem;
+
     if (existing) {
-      return await this.prisma.myFridge.update({
+      savedItem = await this.prisma.myFridge.update({
         where: { id: existing.id },
         data: {
           fridgeQuantity: existing.fridgeQuantity + quantity,
         },
       });
+    } else {
+      savedItem = await this.prisma.myFridge.create({
+        data: {
+          memberId,
+          ingredientId: ingredient.id,
+          fridgeQuantity: quantity,
+          unit: unit || 'ea',
+          expireDate: parsedDate,
+        },
+      });
     }
 
-    return await this.prisma.myFridge.create({
+    // 💡 [추가] 재료 등록 시 member.ingredientCount 1 증가
+    await this.prisma.member.update({
+      where: { id: memberId },
       data: {
-        memberId,
-        ingredientId: ingredient.id,
-        fridgeQuantity: quantity,
-        unit: unit || 'ea',
-        expireDate: parsedDate,
+        ingredientCount: { increment: 1 },
       },
     });
+
+    // 💡 [추가] 뱃지 조건 충족 여부 바로 검사 및 해금 처리
+    await this.badgeService.checkAndAwardBadge(memberId, 'INGREDIENT_COUNT');
+
+    return savedItem;
   }
 
   // =========================
@@ -328,6 +345,8 @@ export class FridgeService {
     const image = await this.imageService.getFoodImage(
       'korean food ' + parsed.title,
     );
+    console.log('4️⃣ 대표 이미지 생성 완료');
+
     // =========================
     // 6. Step 분리
     // =========================
@@ -442,7 +461,7 @@ export class FridgeService {
 
 
     console.log('✅ 추천 API 최종 반환 직전');
-    
+
     return {
       id: savedRecipe.id,
       recipeId: savedRecipe.id,

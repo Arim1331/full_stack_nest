@@ -1,5 +1,6 @@
 import { ConflictException ,forwardRef, Inject, Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { MemberRepository } from 'src/repository/member/member.repository';
+import { BadgeService } from '../badge/badge.service';
 import { AuthService } from '../auth/auth.service';
 import { MemberRegisterDTO, MemberUpdateDTO, MulterFile, OAuthLoginDTO, NicknameChangeDTO, ChangePasswordDTO } from 'src/domain/member/dto/member.dto';
 import MemberException from 'src/exception/exception.member';
@@ -14,28 +15,47 @@ export class MemberService {
 
     constructor(
         private readonly memberRepository: MemberRepository,
+        @Inject(forwardRef(() => BadgeService))
+        private readonly badgeService: BadgeService,
         @Inject(forwardRef(() => AuthService))
         private readonly authService: AuthService,
         private readonly s3Service: S3Service,
     ) {}
 
+    // --- 1. 레벨별 목표 경험치(maxExp) 설정 테이블 ---
+    private readonly LEVEL_SETTINGS: Record<number, number> = {
+        1: 30,    2: 60,    3: 90,    4: 120,   5: 150,
+        6: 200,   7: 250,   8: 300,   9: 350,   10: 450,
+        11: 550,  12: 650,  13: 750,  14: 850,  15: 1000,
+        16: 1200, 17: 1400, 18: 1600, 19: 1800, 20: 2000,
+        21: 2400, 22: 2600, 23: 2800, 24: 3000, 25: 3200,
+        26: 3500, 27: 3800, 28: 4100, 29: 4400, 30: 6000,
+    };
+
     /**
-     * [내부 로직] 기획안 기준: 다음 레벨이 되기 위해 필요한 '총 누적 XP' 목표치 계산
+     * [내부 로직] 보유 XP 기준 현재 적정 레벨 및 목표 XP 계산
      */
-    private getNextLevelMaxXp(level: number): number {
-        // 팀원 가이드라인을 누적치로 환산한 테이블
-        const xpTable: Record<number, number> = {
-            1: 100,  // Lv.1 -> 2 (100 필요)
-            2: 250,  // Lv.2 -> 3 (100 + 150)
-            3: 450,  // Lv.3 -> 4 (250 + 200)
-            4: 700,  // Lv.4 -> 5 (450 + 250)
-            5: 1000, // Lv.5 -> 6 (700 + 300)
-            6: 1400, // Lv.6 -> 7 (1000 + 400)
-            7: 1900, // Lv.7 -> 8 (1400 + 500)
-            8: 2550, // Lv.8 -> 9 (1900 + 650)
-            9: 3350, // Lv.9 -> 10 (2550 + 800)
-        };
-        return xpTable[level] || 3350; // 만렙 이후는 일단 고정
+    private calculateLevelInfo(xp: number) {
+        let currentLevel = 1;
+
+        // 1레벨부터 차례대로 검사하여 목표 XP 이상이면 다음 레벨로 판정
+        for (let lvl = 1; lvl <= 30; lvl++) {
+            const targetXp = this.LEVEL_SETTINGS[lvl];
+            
+            if (xp >= targetXp) {
+                // maxExp 이상 달성 시 다음 레벨로 진입 (최대 30레벨)
+                currentLevel = Math.min(lvl + 1, 30);
+            } else {
+                // 아직 달성 못했으면 현재 lvl이 적정 레벨
+                currentLevel = lvl;
+                break;
+            }
+        }
+
+        // 현재 레벨의 목표 경험치 (30레벨 이상이면 6000)
+        const nextLevelMaxXp = this.LEVEL_SETTINGS[currentLevel] || 6000;
+
+        return { currentLevel, nextLevelMaxXp };
     }
 
     // 회원 가입 서비스
@@ -60,35 +80,56 @@ export class MemberService {
     }
 
     /**
-     * 회원 단일 조회 (레벨 및 경험치 진행도 포함)
-     */
-    async getMember(id: number): Promise<any> {
-        const member = await this.memberRepository.findMemberById(id);
+ * 회원 단일 조회 (레벨 및 경험치 진행도 포함)
+ */
+async getMember(id: number): Promise<any> {
+    const member = await this.memberRepository.findMemberById(id);
 
-        if (!member) { 
-            this.logger.warn(`[회원 조회 실패] 존재하지 않는 Member ID: ${id}`);
-            throw new MemberException("멤버를 찾을 수 없습니다.");
-        }
-
-        // --- 경험치 진행도 계산 로직 추가 ---
-        const nextLevelMaxXp = this.getNextLevelMaxXp(member.memberLevel);
-        
-        // 진행률(%) 계산: (현재 총 XP / 목표 총 XP) * 100
-        const progress = Math.min(
-            Math.floor((member.memberXp / nextLevelMaxXp) * 100), 
-            100
-        );
-
-        // 프론트엔드 연동을 위해 계산된 필드들을 추가하여 반환
-        return {
-            ...member,
-            socials: member.socials.map(({ memberPassword, ...rest }) => rest),
-            // 추가된 필드
-            nextLevelMaxXp, // 다음 레벨 목표치
-            progress,       // 경험치 바 % (0~100)
-            currentXp: member.memberXp
-        };
+    if (!member) { 
+        this.logger.warn(`[회원 조회 실패] 존재하지 않는 Member ID: ${id}`);
+        throw new MemberException("멤버를 찾을 수 없습니다.");
     }
+
+    const currentXp = member.memberXp || 0;
+
+    // 1. 현재 XP 기반 적정 레벨 및 목표 XP 자동 산출
+    const { currentLevel, nextLevelMaxXp } = this.calculateLevelInfo(currentXp);
+
+    // 2. DB의 레벨과 계산된 레벨이 다르면 DB 동기화 업데이트
+    if (member.memberLevel !== currentLevel) {
+        this.logger.log(`[레벨 동기화] Member ID: ${id} - Lv.${member.memberLevel} -> Lv.${currentLevel} (XP: ${currentXp})`);
+        
+        await this.memberRepository.updateProfile(id, {
+            memberName: member.memberName,
+            memberLevel: currentLevel
+        });
+    }
+
+    // 3. 레벨업/뱃지 동기화 처리
+    await this.badgeService.handleLevelUp({
+        ...member,
+        memberLevel: currentLevel
+    });
+
+    // 4. 💡 [수정] BadgeService의 실제 메서드인 findAllMyBadges 호출
+    const badges = await this.badgeService.findAllMyBadges(id);
+
+    // 5. 진행률(%) 계산
+    const progress = Math.min(
+        Math.floor((currentXp / nextLevelMaxXp) * 100), 
+        100
+    );
+
+    return {
+        ...member,
+        memberLevel: currentLevel,
+        socials: member.socials.map(({ memberPassword, ...rest }) => rest),
+        nextLevelMaxXp, // 현재 레벨 목표치
+        progress,       // 게이지 퍼센트 (0~100)
+        currentXp,
+        badges          // 뱃지 목록 및 해금 정보 반환
+    };
+}
 
     // 단일 회원 이메일로 조회
     async getMemberByMemberEmail(memberEmail: string): Promise<any | null> {

@@ -7,7 +7,7 @@ import { JwtAuthGuard } from 'src/module/auth/guard/jwt-auth.guard';
 @ApiTags('Badges (뱃지 시스템)')
 @ApiBearerAuth('accessToken')
 @UseGuards(JwtAuthGuard)
-@Controller('v1/badges')
+@Controller('badges')
 export class BadgeController {
   // 1. BadgeService 주입
   constructor(private readonly badgeService: BadgeService) {}
