@@ -3,10 +3,12 @@ import { MemberController } from 'src/controller/member/member.controller';
 import { MemberRepository } from 'src/repository/member/member.repository';
 import { MemberService } from 'src/service/member/member.service';
 import { AuthModule } from '../auth/auth.module';
+import { BadgeModule } from '../badge/badge.module';
 
 @Module({
     imports: [
         forwardRef(() => AuthModule),
+        forwardRef(() => BadgeModule),
     ],
     controllers: [MemberController],
     providers: [MemberRepository, MemberService],

@@ -62,6 +62,14 @@ export class MemberUpdateDTO {
     @ApiProperty({example: "test123!@#", description: "회원 비밀번호"})
     @IsString() @IsOptional()
     memberPassword?: string;
+
+    @ApiProperty({example: 1, description: "회원 레벨"})
+    @IsNumber() @IsOptional()
+    memberLevel?: number;
+
+    @ApiProperty({example: 0, description: "회원 경험치"})
+    @IsNumber() @IsOptional()
+    memberXp?: number;
 }
 
 // 로컬에서 로그인 하는 경우
