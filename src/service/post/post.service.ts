@@ -2,11 +2,15 @@ import { ForbiddenException, Injectable } from '@nestjs/common';
 import { PostRepository } from 'src/repository/post/post.repository';
 import { PostCreateDTO, PostUpdatedDTO } from 'src/domain/post/dto/post.dto';
 import PostException from 'src/exception/exception.post';
+import { BadgeService } from '../badge/badge.service';
 
 // 비지니스 로직 담당
 @Injectable()
 export class PostService {
-  constructor(private readonly postRepository: PostRepository) {}
+  constructor(
+    private readonly postRepository: PostRepository,
+    private readonly badgeService: BadgeService,
+  ) {}
 
   private calculateCookingPostXp(ingredientNames?: string[]): number {
     const COOKING_COMPLETE_XP = 20;
@@ -55,10 +59,21 @@ export class PostService {
 
   // 게시글 생성
   async createPost(postCreateDTO: PostCreateDTO) {
-    const earnedXp = this.calculateCookingPostXp(postCreateDTO.ingredientNames)
+    const earnedXp = this.calculateCookingPostXp(postCreateDTO.ingredientNames);
 
-    return await this.postRepository.save(postCreateDTO, earnedXp);
-    // 행동만 하면 return 없어도 됨
+    const createdPost = await this.postRepository.save(postCreateDTO, earnedXp);
+
+    await this.badgeService.checkAndAwardBadge(
+      postCreateDTO.memberId,
+      'COOK_COUNT',
+    );
+
+    await this.badgeService.checkAndAwardBadge(
+      postCreateDTO.memberId,
+      'POST_COUNT',
+    );
+
+    return createdPost;
   }
 
   // 게시글 수정
