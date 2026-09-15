@@ -9,6 +9,8 @@ export type PostWithLikeInfo = Prisma.PostGetPayload<{
       select: {
         id: true;
         memberName: true;
+        memberXp: true;
+        memberLevel: true;
       };
     };
     recipe: {
@@ -59,6 +61,8 @@ export class PostRepository {
           select: {
             id: true,
             memberName: true,
+            memberXp: true,
+            memberLevel: true,
           },
         },
         recipe: {
@@ -112,6 +116,8 @@ export class PostRepository {
           select: {
             id: true,
             memberName: true,
+            memberXp: true,
+            memberLevel: true,
           },
         },
         recipe: {
@@ -214,6 +220,9 @@ export class PostRepository {
           },
           postCount: {
             increment: 1,
+          },
+          memberXp: {
+            increment: earnedXp,
           },
         },
       });
