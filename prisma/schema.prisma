@@ -214,7 +214,7 @@ model Comment {
   id        Int      @id @default(autoincrement()) @map("comment_id")
   memberId  Int      @map("member_id")
   postId    Int      @map("post_id")
-  content   String   @map("comment_content")
+  content   String   @db.VarChar(300) @map("comment_content")
   createdAt DateTime @default(now()) @map("comment_created_at")
   updatedAt DateTime @updatedAt @map("comment_updated_at")
 

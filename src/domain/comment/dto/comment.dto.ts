@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger"
 import { Type } from "class-transformer"
-import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString } from "class-validator"
+import { ArrayNotEmpty, IsArray, IsNumber, IsOptional, IsString, MaxLength } from "class-validator"
 
 // 댓글 조회용 dto
 export class CommentDTO {
@@ -44,7 +44,8 @@ export class CommentCreateDTO  {
   
   @ApiProperty({ example: "댓글 내용입니다.", description: "댓글 내용"})
   @IsString()
-  content: string
+  @MaxLength(300) // 글자수 300자 제한
+  content: string 
 }
 
 // 서버 내부 저장용
@@ -63,6 +64,8 @@ export class CommentUpdateDTO  {
     required: false
   })
   @IsString()
+  @MaxLength(300) // 글자수 300자 제한
+
   @IsOptional()
   content?: string
 }
