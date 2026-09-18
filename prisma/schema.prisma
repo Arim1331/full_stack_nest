@@ -102,7 +102,7 @@ model UserBadge {
   badgeId    Int      @map("badge_id")
   achievedAt DateTime @default(now()) @map("user_badge_achieve_at")
 
-  member Member @relation(fields: [memberId], references: [id])
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   badge  Badge  @relation(fields: [badgeId], references: [id])
 
   @@unique([memberId, badgeId])
@@ -169,7 +169,7 @@ model MyFridge {
   deletedAt    DateTime? @map("fridge_deleted_at")
   ingredientId Int       @map("ingredient_id")
 
-  member     Member     @relation(fields: [memberId], references: [id])
+  member     Member     @relation(fields: [memberId], references: [id], onDelete: Cascade)
   ingredient Ingredient @relation(fields: [ingredientId], references: [id])
 
   @@unique([memberId, ingredientId, expireDate])
@@ -187,7 +187,7 @@ model Post {
   recipeId    Int       @map("recipe_id")
   deletedAt   DateTime? @map("post_deleted_at")
 
-  member Member @relation(fields: [memberId], references: [id])
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id])
 
   postImage          PostImage[]
@@ -218,7 +218,7 @@ model Comment {
   createdAt DateTime @default(now()) @map("comment_created_at")
   updatedAt DateTime @updatedAt @map("comment_updated_at")
 
-  member Member @relation(fields: [memberId], references: [id])
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("tbl_comment")
@@ -230,7 +230,7 @@ model SavedRecipe {
   memberId  Int      @map("member_id")
   recipeId  Int      @map("recipe_id")
 
-  member Member @relation(fields: [memberId], references: [id])
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   recipe Recipe @relation(fields: [recipeId], references: [id])
 
   @@unique([memberId, recipeId])
@@ -243,7 +243,7 @@ model PostLike {
   memberId  Int      @map("member_id")
   postId    Int      @map("post_id")
 
-  member Member @relation(fields: [memberId], references: [id])
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([memberId, postId])

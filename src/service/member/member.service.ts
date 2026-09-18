@@ -8,6 +8,7 @@ import { AuthProvider } from '@prisma/client';
 import { MemberResponse } from 'src/domain/member/dto/member.response';
 import { S3Service } from '../s3/s3.service'; 
 import * as bcrypt from 'bcrypt';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class MemberService {
@@ -58,26 +59,64 @@ export class MemberService {
         return { currentLevel, nextLevelMaxXp };
     }
 
-    // 회원 가입 서비스
-    async join(member: MemberRegisterDTO): Promise<void> {
-        this.logger.log(`[회원가입 요청] Email: ${member.memberEmail}`);
-        
-        // 💡 일반 폼 회원가입(LOCAL)일 때만 LOCAL 이메일 중복 체크
-        if (member.memberProvider === AuthProvider.LOCAL) {
-            const foundLocalMember = await this.memberRepository.findLocalMemberByEmail(member.memberEmail);
-            if (foundLocalMember) {
-                this.logger.warn(`[회원가입 실패] 이미 존재하는 로컬 이메일: ${member.memberEmail}`);
-                throw new MemberException("이미 일반 회원으로 가입된 이메일입니다.");
-            }
+// 회원 가입 서비스
+  async join(member: MemberRegisterDTO): Promise<void> {
+    this.logger.log(`[회원가입 요청] Email: ${member.memberEmail}`);
+
+    // 💡 일반 폼 회원가입(LOCAL)일 때만 LOCAL 이메일 중복 체크
+    if (member.memberProvider === AuthProvider.LOCAL) {
+      const foundLocalMember = await this.memberRepository.findLocalMemberByEmail(
+        member.memberEmail
+      );
+      if (foundLocalMember) {
+        this.logger.warn(
+          `[회원가입 실패] 이미 존재하는 로컬 이메일: ${member.memberEmail}`
+        );
+        throw new MemberException("이미 일반 회원으로 가입된 이메일입니다.");
+      }
+    }
+
+    let hashedPassword = member.memberPassword;
+    if (
+      member.memberProvider === AuthProvider.LOCAL &&
+      member.memberPassword
+    ) {
+      hashedPassword = await this.authService.hashPassword(
+        member.memberPassword
+      );
+    }
+
+    try {
+      await this.memberRepository.save({
+        ...member,
+        memberPassword: hashedPassword,
+      });
+      this.logger.log(`[회원가입 성공] Email: ${member.memberEmail}`);
+    } catch (error: any) {
+      // 💡 Prisma DB 제약조건 위반 에러(P2002) 캐치
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const target = String(error.meta?.target);
+
+        // 닉네임 중복 체크
+        if (target.includes('member_nickname') || target.includes('nickname')) {
+          this.logger.warn(`[회원가입 실패] 닉네임 중복: ${member.memberNickname}`);
+          throw new MemberException("이미 사용 중인 이름입니다.");
         }
 
-        let hashedPassword = member.memberPassword;
-        if (member.memberProvider === AuthProvider.LOCAL && member.memberPassword) {
-            hashedPassword = await this.authService.hashPassword(member.memberPassword);
+        // DB 레벨 이메일 중복 체크 (안전장치)
+        if (target.includes('member_email') || target.includes('email')) {
+          this.logger.warn(`[회원가입 실패] 이메일 중복: ${member.memberEmail}`);
+          throw new MemberException("이미 가입된 이메일입니다.");
         }
-        await this.memberRepository.save({ ...member, memberPassword: hashedPassword });
-        this.logger.log(`[회원가입 성공] Email: ${member.memberEmail}`);
+      }
+
+      // 잡히지 않은 다른 에러는 그대로 다시 throw
+      throw error;
     }
+  }
 
     /**
  * 회원 단일 조회 (레벨 및 경험치 진행도 포함)
@@ -202,35 +241,48 @@ async getMember(id: number): Promise<any> {
 
     // 닉네임 변경
     async changeNickname(
-    id: number,
-    member: NicknameChangeDTO
-) {
-    this.logger.log(`[닉네임 변경 요청] Member ID: ${id} -> 새 닉네임: ${member.memberName}`);
-    const foundMember = await this.memberRepository.findMemberById(id);
+        id: number,
+        member: NicknameChangeDTO
+    ) {
+        this.logger.log(`[닉네임 변경 요청] Member ID: ${id} -> 새 닉네임: ${member.memberName}`);
+        const foundMember = await this.memberRepository.findMemberById(id);
 
-    if (!foundMember) {
-        this.logger.warn(`[닉네임 변경 실패] Member ID: ${id} 회원 없음`);
-        throw new MemberException("회원을 찾을 수 없습니다"); 
+        if (!foundMember) {
+            this.logger.warn(`[닉네임 변경 실패] Member ID: ${id} 회원 없음`);
+            throw new MemberException("회원을 찾을 수 없습니다"); 
+        }
+
+        // 💡 memberName 및 memberNickname 중복 검사 (본인 제외)
+        const duplicateMember =
+            await this.memberRepository.findMemberByName(member.memberName);
+
+        if (duplicateMember && duplicateMember.id !== id) {
+            this.logger.warn(`[닉네임 변경 실패] 중복된 닉네임: ${member.memberName}`);
+            throw new ConflictException("중복된 닉네임입니다.");
+        }
+
+        try {
+            // 💡 memberName과 memberNickname을 모두 동일한 값으로 업데이트
+            const updatedMember =
+                await this.memberRepository.updateNickname(
+                    id,
+                    member.memberName
+                );
+            this.logger.log(`[닉네임 변경 성공] Member ID: ${id} -> ${member.memberName}`);
+
+            return updatedMember;
+        } catch (error: any) {
+            // 💡 Prisma Unique 제약조건(P2002) 예외 처리 (안전장치)
+            if (
+                error instanceof Prisma.PrismaClientKnownRequestError &&
+                error.code === 'P2002'
+            ) {
+                this.logger.warn(`[닉네임 변경 실패] DB Unique 제약조건 위반: ${member.memberName}`);
+                throw new ConflictException("중복된 닉네임입니다.");
+            }
+            throw error;
+        }
     }
-
-    const duplicateMember =
-        await this.memberRepository.findMemberByName(member.memberName);
-
-    if (duplicateMember && duplicateMember.id !== id) {
-        this.logger.warn(`[닉네임 변경 실패] 중복된 닉네임: ${member.memberName}`);
-        throw new ConflictException("중복된 닉네임 입니다.");
-    }
-
-    const updatedMember =
-        await this.memberRepository.updateNickname(
-            id,
-            member.memberName
-        );
-        this.logger.log(`[닉네임 변경 성공] Member ID: ${id} -> ${member.memberName}`);
-
-    return updatedMember;
-}
-
     // 비밀번호 변경
     async changePassword(memberId: number, dto: ChangePasswordDTO): Promise<void> {
         this.logger.log(`[비밀번호 변경 요청] Member ID: ${memberId}`);
