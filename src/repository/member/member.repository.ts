@@ -137,8 +137,8 @@ export class MemberRepository {
             })
             return true
         } catch (err) {
-            console.log("member respository delete failed")
-            return false
+            console.log("member respository delete failed", err)
+            throw err;
         }
     }
 
@@ -165,7 +165,8 @@ export class MemberRepository {
                 id
             },
             data: {
-                memberName
+                memberName,        // 이름 업데이트
+                memberNickname: memberName  // 💡 닉네임도 동일하게 업데이트
             }
         });
 
